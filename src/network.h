@@ -16,8 +16,8 @@ void configModeCallback(WiFiManager *myWiFiManager)
   Serial.println("Entered config mode");
   Serial.println(WiFi.softAPIP());
   Serial.println(myWiFiManager->getConfigPortalSSID());
-  displayLog("Entered config mode");
-  displayLog("Please connect to the AP" + String(myWiFiManager->getConfigPortalSSID()));
+  displayLogln("Entered config mode");
+  displayLogln("Please connect to the AP: " + String(myWiFiManager->getConfigPortalSSID()));
 }
 
 void saveConfigCallback()
@@ -25,7 +25,7 @@ void saveConfigCallback()
   Serial.println("Should save config");
   Serial.println(wifiManager.getWiFiSSID());
   Serial.println(wifiManager.getWiFiPass());
-  displayLog("Should save config");
+  displayLogln("Should save config");
   wifiManager.reboot();
 }
 
@@ -33,7 +33,7 @@ void initWifiWithManager()
 {
 
   Serial.println("Connecting to WiFi...");
-  displayLog("Connecting to WiFi...");
+  displayLogln("Connecting to WiFi...");
   Serial.println(WiFi.waitForConnectResult());
 
   wifiManager.addParameter(&apiToken);
@@ -44,9 +44,9 @@ void initWifiWithManager()
   wifiManager.setConnectTimeout(30);
   wifiManager.setSaveConfigCallback(saveConfigCallback);
   wifiManager.setConfigPortalTimeoutCallback([]()
-                                             { displayLog("Config portal closed"); });
+                                             { displayLogln("Config portal closed"); });
   wifiManager.setSaveParamsCallback([]()
-                                    { displayLog("Parameters saved"); });
+                                    { displayLogln("Parameters saved"); });
 
   wifiManager.setConnectRetries(3);
   wifiManager.setTitle("E-ink Todo List");
@@ -54,8 +54,8 @@ void initWifiWithManager()
 
   Serial.println("Connected to WiFi");
   Serial.println(WiFi.waitForConnectResult());
-  displayLog("Connected to WiFi: " + WiFi.SSID());
-  displayLog("IP: " + WiFi.localIP().toString());
+  displayLogln("Connected to WiFi: " + WiFi.SSID());
+  displayLogln("IP: " + WiFi.localIP().toString());
 }
 
 #endif

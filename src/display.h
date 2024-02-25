@@ -21,10 +21,12 @@ void initDisplay()
   display.setTextColor(GxEPD_BLACK);
 
   u8g2Fonts.begin(display);
-  u8g2Fonts.setFont(u8g2_font_helvB08_tf);
+  u8g2Fonts.setFont(u8g2_font_logisoso62_tn);
+  u8g2Fonts.setBackgroundColor(GxEPD_WHITE);
+  u8g2Fonts.setForegroundColor(GxEPD_BLACK);
 }
 
-void displayLog(String log)
+void displayLogln(String log)
 {
   if (display.getCursorY() > display.height() - 10)
   {
@@ -36,6 +38,22 @@ void displayLog(String log)
   else
   {
     display.println(log);
+    display.display(true);
+  }
+}
+
+void displayLog(String log)
+{
+  if (display.getCursorY() > display.height() - 10)
+  {
+    display.fillScreen(GxEPD_WHITE);
+    display.setCursor(0, 0);
+    display.print(log);
+    display.display(false);
+  }
+  else
+  {
+    display.print(log);
     display.display(true);
   }
 }

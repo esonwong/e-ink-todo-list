@@ -14,14 +14,13 @@ void setup()
   initDisplay();
   display.fillScreen(GxEPD_WHITE);
   display.setCursor(0, 0);
-  displayLog("E Ink Todo List Starting...");
+  displayLogln("E Ink Todo List Starting...");
   initWifiWithManager();
   setClock();
 }
 
 void loop()
 {
-  Serial.println("loop!");
-  displayLog("loop!");
-  delay(1000);
+  displayTime();
+  delay(800);
 }
