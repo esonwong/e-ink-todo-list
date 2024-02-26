@@ -42,7 +42,7 @@ void initWifiWithManager()
   wifiManager.addParameter(&apiToken);
   wifiManager.addParameter(&apiHost);
 
-  wifiManager.setConfigPortalTimeout(60);
+  wifiManager.setConfigPortalTimeout(600);
   wifiManager.setConnectTimeout(30);
   wifiManager.setConnectRetries(3);
 
