@@ -3,8 +3,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-String AP_SSID = "E-ink WiFi";
-String AP_PASSWORD = "e-ink-todo-list";
+String AP_SSID = "E-ink Todo List AP";
+String AP_PASSWORD = "einktodo.com";
 
 int LED_PIN = 2;
 

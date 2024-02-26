@@ -8,7 +8,7 @@
 WiFiManager wifiManager;
 
 WiFiManagerParameter apiToken("apiToken", "API Token", "", 40);
-WiFiManagerParameter apiHost("apiHost", "API Host", "", 40);
+WiFiManagerParameter apiHost("apiHost", "API Host", "https://einktodo.com/api/display", 40);
 
 void configModeCallback(WiFiManager *myWiFiManager)
 {
@@ -18,6 +18,9 @@ void configModeCallback(WiFiManager *myWiFiManager)
   Serial.println(myWiFiManager->getConfigPortalSSID());
   displayLogln("Entered config mode");
   displayLogln("Please connect to the AP: " + String(myWiFiManager->getConfigPortalSSID()));
+  displayLogln("Password: " + AP_PASSWORD);
+  displayLogln("Config Web Server: http://" + WiFi.softAPIP().toString());
+  display.display(false);
 }
 
 void saveConfigCallback()
@@ -39,16 +42,17 @@ void initWifiWithManager()
   wifiManager.addParameter(&apiToken);
   wifiManager.addParameter(&apiHost);
 
-  wifiManager.setConfigPortalTimeout(600);
-  wifiManager.setAPCallback(configModeCallback);
+  wifiManager.setConfigPortalTimeout(60);
   wifiManager.setConnectTimeout(30);
+  wifiManager.setConnectRetries(3);
+
+  wifiManager.setAPCallback(configModeCallback);
   wifiManager.setSaveConfigCallback(saveConfigCallback);
   wifiManager.setConfigPortalTimeoutCallback([]()
                                              { displayLogln("Config portal closed"); });
-  wifiManager.setSaveParamsCallback([]()
-                                    { displayLogln("Parameters saved"); });
+  // wifiManager.setSaveParamsCallback([]()
+  // { displayLogln("Parameters saved"); });
 
-  wifiManager.setConnectRetries(3);
   wifiManager.setTitle("E-ink Todo List");
   wifiManager.autoConnect(AP_SSID.c_str(), AP_PASSWORD.c_str());
 

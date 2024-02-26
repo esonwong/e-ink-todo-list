@@ -10,18 +10,17 @@
 
 void setClock()
 {
-  configTime(TZ_SEC, DST_SEC, "cn.pool.ntp.org",
-             "ntp1.aliyun.com", "pool.ntp.org");
+  configTime(TZ_SEC, DST_SEC, "time.asia.apple.com", "cn.pool.ntp.org", "pool.ntp.org");
 
   Serial.print(F("Waiting for NTP time sync: "));
   displayLog("Waiting for NTP time sync: ");
   time_t nowSecs = time(nullptr);
-  while (nowSecs < 8 * 3600 * 2)
+  int i = 0;
+  while (nowSecs < 8 * 3600 * 2 && i++ < 10)
   {
     delay(500);
     Serial.print(F("."));
     displayLog(".");
-    yield();
     nowSecs = time(nullptr);
   }
 
