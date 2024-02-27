@@ -8,7 +8,7 @@
 WiFiManager wifiManager;
 
 WiFiManagerParameter apiToken("apiToken", "API Token", "", 40);
-WiFiManagerParameter apiHost("apiHost", "API Host", "https://einktodo.com/api/display", 40);
+WiFiManagerParameter apiUrl("apiUrl", "API URL", "https://einktodo.com/api/display", 60);
 
 void configModeCallback(WiFiManager *myWiFiManager)
 {
@@ -40,7 +40,7 @@ void initWifiWithManager()
   Serial.println(WiFi.waitForConnectResult());
 
   wifiManager.addParameter(&apiToken);
-  wifiManager.addParameter(&apiHost);
+  wifiManager.addParameter(&apiUrl);
 
   wifiManager.setConfigPortalTimeout(600);
   wifiManager.setConnectTimeout(30);
