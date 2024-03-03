@@ -4,32 +4,53 @@
 #include <WiFiManager.h>
 #include "config.h"
 #include "display.h"
+#include "store.h"
 
 WiFiManager wifiManager;
 
-WiFiManagerParameter apiToken("apiToken", "API Token", "", 40);
-WiFiManagerParameter apiUrl("apiUrl", "API URL", "https://einktodo.com/api/display", 60);
+WiFiManagerParameter apiKey("apiKey", "API Key", "", 41);
+WiFiManagerParameter apiUrl("apiUrl", "API URL", "https://www.einktodo.com/api/display", 200);
 
 void configModeCallback(WiFiManager *myWiFiManager)
 {
 
-  Serial.println("Entered config mode");
-  Serial.println(WiFi.softAPIP());
-  Serial.println(myWiFiManager->getConfigPortalSSID());
   displayLogln("Entered config mode");
   displayLogln("Please connect to the AP: " + String(myWiFiManager->getConfigPortalSSID()));
   displayLogln("Password: " + AP_PASSWORD);
   displayLogln("Config Web Server: http://" + WiFi.softAPIP().toString());
-  display.display(false);
+
+#ifdef E_INK_750
+  initDisplay();
+  do
+  {
+    display.fillScreen(GxEPD_WHITE);
+    display.setTextColor(GxEPD_BLACK);
+    display.setCursor(0, 0);
+    display.println("Entered config mode");
+    display.println("Please connect to the AP: " + String(myWiFiManager->getConfigPortalSSID()));
+    display.println("Password: " + AP_PASSWORD);
+    display.println("Config Web Server: http://" + WiFi.softAPIP().toString());
+  } while (display.nextPage());
+
+#else
+  display.display(true);
+#endif
+
+  display.powerOff();
 }
 
 void saveConfigCallback()
 {
   Serial.println("Should save config");
+  Serial.print("WiFi SSID:");
   Serial.println(wifiManager.getWiFiSSID());
+  Serial.print("WiFi Password:");
   Serial.println(wifiManager.getWiFiPass());
-  displayLogln("Should save config");
-  wifiManager.reboot();
+  Serial.print("API Key:");
+  Serial.println(apiKey.getValue());
+  saveToStore("api key", apiKey.getValue());
+  saveToStore("api url", apiUrl.getValue());
+  // wifiManager.reboot();
 }
 
 void initWifiWithManager()
@@ -39,7 +60,20 @@ void initWifiWithManager()
   displayLogln("Connecting to WiFi...");
   Serial.println(WiFi.waitForConnectResult());
 
-  wifiManager.addParameter(&apiToken);
+  String apiKeyValue = getFromStore("api key");
+  String apiUrlValue = getFromStore("api url");
+
+  if (apiKeyValue.length() > 0)
+  {
+    apiKey.setValue(apiKeyValue.c_str(), apiKeyValue.length());
+  }
+
+  if (apiUrlValue.length() > 0)
+  {
+    apiUrl.setValue(apiUrlValue.c_str(), apiUrlValue.length());
+  }
+
+  wifiManager.addParameter(&apiKey);
   wifiManager.addParameter(&apiUrl);
 
   wifiManager.setConfigPortalTimeout(600);
