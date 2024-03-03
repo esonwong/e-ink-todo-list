@@ -39,15 +39,15 @@ void drawCurrentTime()
   Serial.println(timeStr);
 
   display.setTextColor(GxEPD_BLACK);
-  display.setTextSize(2);
+  display.setTextSize(1);
 
   int16_t tbx, tby;
   uint16_t tbw, tbh; // boundary box window
   // align with centered HelloWorld
   display.getTextBounds(timeStr, 0, 0, &tbx, &tby, &tbw, &tbh);
 
-  int x = display.width() - tbw - 20;
-  int y = 20;
+  int x = display.width() - tbw - 10;
+  int y = 10;
 
   display.setCursor(x, y);
   display.print(timeStr);

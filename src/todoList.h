@@ -7,8 +7,6 @@
 #include "clock.h"
 #include "network.h"
 
-const char *apiRoot = apiUrl.getValue();
-const char *apikey = apiKey.getValue();
 const char *savedTodoLastModifiedKey = "todoL";
 WiFiClientSecure client;
 HTTPClient http;
@@ -57,6 +55,9 @@ String urlencode(String str)
 
 void downloadAndDrawTodo(String user = "eson", uint16_t color = GxEPD_BLACK)
 {
+  const char *apiRoot = apiUrl.getValue();
+  const char *apikey = apiKey.getValue();
+
   client.setCACert(rootCACertificate);
   String savedTodoLastModified = getFromStore(savedTodoLastModifiedKey);
   Serial.printf("Last-Modified: %d\n", savedTodoLastModified);

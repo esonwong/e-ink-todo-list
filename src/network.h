@@ -63,6 +63,9 @@ void initWifiWithManager()
   String apiKeyValue = getFromStore("api key");
   String apiUrlValue = getFromStore("api url");
 
+  Serial.println("API Key: " + apiKeyValue);
+  Serial.println("API URL: " + apiUrlValue);
+
   if (apiKeyValue.length() > 0)
   {
     apiKey.setValue(apiKeyValue.c_str(), apiKeyValue.length());
