@@ -17,7 +17,7 @@ GxEPD2_BW<GxEPD2_290, GxEPD2_290::HEIGHT> display(GxEPD2_290(/*CS=5*/ SS, /*DC=*
 
 void initDisplay()
 {
-  Serial.println("初始化屏幕" + String(E_INK_750));
+  Serial.println("Initializing display...");
 
 #ifdef E_INK_750
   SPI.end();
@@ -37,7 +37,7 @@ void initDisplay()
   display.setCursor(20, 20);
 #else
   display.setRotation(1);
-  display.setCursor(20, 20);
+  display.setCursor(0, 0);
   display.fillScreen(GxEPD_WHITE);
   display.setTextColor(GxEPD_BLACK);
 #endif

@@ -12,21 +12,20 @@ void setClock()
 {
   configTime(TZ_SEC, DST_SEC, "time.asia.apple.com", "cn.pool.ntp.org", "pool.ntp.org");
 
-  displayLog("Waiting for NTP time sync: ");
+  Serial.println("Waiting for time");
   time_t nowSecs = time(nullptr);
   int i = 0;
   while (nowSecs < 8 * 3600 * 2 && i++ < 10)
   {
-    delay(500);
-    displayLog(".");
+    delay(1000);
+    Serial.print(".");
     nowSecs = time(nullptr);
   }
 
-  displayLogln("");
   struct tm timeinfo;
   gmtime_r(&nowSecs, &timeinfo);
-  Serial.print(asctime(&timeinfo));
-  displayLogln(asctime(&timeinfo));
+  Serial.print("Current time: ");
+  Serial.println(asctime(&timeinfo));
 }
 
 void drawCurrentTime()

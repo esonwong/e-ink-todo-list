@@ -1,39 +1,90 @@
 #ifndef STORE_H
 #define STORE_H
-
-#include <Preferences.h>
-
-Preferences preferences;
+#include <EEPROM.h>
 
 const char *storeName = "einktodo.com";
 
-void saveToStore(const char *key, const char *value)
+struct Setting
 {
-  // chekck key's length
-  if (strlen(key) > 15)
+  char apiKey[41] = "";
+  char apiUrl[200] = "https://www.einktodo.com/api/display";
+};
+
+const int settingSavedFlag = 0x1234;
+
+struct RunningValue
+{
+  char todoLastModified[30] = "";
+};
+const int runningValueSavedFlag = 0x5678;
+
+void saveSetting(Setting setting)
+{
+  EEPROM.begin(512);
+  EEPROM.put(0, settingSavedFlag);
+  EEPROM.put(sizeof(int), setting);
+  EEPROM.commit();
+  EEPROM.end();
+}
+
+Setting loadSetting()
+{
+  Setting setting;
+  EEPROM.begin(512);
+  int flag;
+  EEPROM.get(0, flag);
+  if (flag != settingSavedFlag)
   {
-    Serial.println("Key is too long");
-    return;
+    EEPROM.end();
+    return setting;
   }
-
-  preferences.begin(storeName, false);
-  preferences.putString(key, value);
-  preferences.end();
+  EEPROM.get(sizeof(int), setting);
+  EEPROM.end();
+  return setting;
 }
 
-const String getFromStore(const char *key)
+void removeSetting()
 {
-  preferences.begin(storeName, true);
-  String value = preferences.getString(key, "");
-  preferences.end();
-  return value;
+  EEPROM.begin(512);
+  EEPROM.put(0, 0);
+  EEPROM.commit();
+  EEPROM.end();
 }
 
-void removeStore(const char *key)
+void saveRunningValue(RunningValue runningValue)
 {
-  preferences.begin(storeName, false);
-  preferences.remove(key);
-  preferences.end();
+  EEPROM.begin(512);
+  EEPROM.put(sizeof(int) + sizeof(Setting), runningValueSavedFlag);
+  EEPROM.put(sizeof(int) + sizeof(Setting) + sizeof(int), runningValue);
+  EEPROM.commit();
+  EEPROM.end();
 }
+
+RunningValue loadRunningValue()
+{
+  RunningValue runningValue;
+  EEPROM.begin(512);
+  int flag;
+  EEPROM.get(sizeof(int) + sizeof(Setting), flag);
+  if (flag != runningValueSavedFlag)
+  {
+    EEPROM.end();
+    return runningValue;
+  }
+  EEPROM.get(sizeof(int) + sizeof(Setting) + sizeof(int), runningValue);
+  EEPROM.end();
+  return runningValue;
+}
+
+void removeRunningValue()
+{
+  EEPROM.begin(512);
+  EEPROM.put(sizeof(int) + sizeof(Setting), 0);
+  EEPROM.commit();
+  EEPROM.end();
+}
+
+Setting setting = loadSetting();
+RunningValue runningValue = loadRunningValue();
 
 #endif // STORE_H

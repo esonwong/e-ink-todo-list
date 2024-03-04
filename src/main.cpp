@@ -7,8 +7,7 @@
 #include "led.h"
 #include "display.h"
 #include "clock.h"
-
-int updating = false;
+#include "button.h"
 
 void setup()
 {
@@ -16,50 +15,61 @@ void setup()
   Serial.begin(115200);
   Serial.println();
   Serial.println("Steup Start");
-  initWifiWithManager();
-  setClock();
 
-  delay(1000);
+  initButton();
 
-  updating = true;
-  downloadAndDrawTodo();
-  updating = false;
-}
-
-void loop()
-{
-  // 每 1 分钟检查一次是否需要更新 todo
-  time_t now = time(nullptr);
-  if (now % 60 == 0 && !updating)
+  if (initWifiWithManager())
   {
+
+    setClock();
+
+    delay(1000);
+
     updating = true;
     downloadAndDrawTodo();
     updating = false;
   }
+}
+
+void loop()
+{
+  button.tick();
+  wifiManager.process();
+
+  // 每 1 分钟检查一次是否需要更新 todo
+  time_t now = time(nullptr);
+  if (now % 60 == 0 && !updating && WiFi.status() == WL_CONNECTED)
+  {
+    updating = true;
+    downloadAndDrawTodo();
+    delay(800);
+    updating = false;
+  }
 
   // wait input from Serial
-  String input = Serial.readStringUntil('\n');
-  if (input.length() > 0)
-  {
-    Serial.print("input: ");
-    Serial.println(input);
-    char *inputChar = (char *)malloc(input.length() + 1);
+  // String input = Serial.readStringUntil('\n');
+  // if (input.length() > 0)
+  // {
+  //   Serial.print("input: ");
+  //   Serial.println(input);
+  //   char *inputChar = (char *)malloc(input.length() + 1);
 
-    // 用 : 分割字符串
-    input.toCharArray(inputChar, input.length() + 1);
-    char *command = strtok(inputChar, ":");
-    Serial.print("command: ");
-    Serial.println(command);
+  //   // 用 : 分割字符串
+  //   input.toCharArray(inputChar, input.length() + 1);
+  //   char *command = strtok(inputChar, ":");
+  //   Serial.print("command: ");
+  //   Serial.println(command);
 
-    if (strcmp(command, "fr") == 0)
-    {
-      Serial.println("fr:强制刷新 todo");
-      removeStore(savedTodoLastModifiedKey);
-      updating = true;
-      downloadAndDrawTodo();
-      updating = false;
-    }
+  //   if (strcmp(command, "fr") == 0)
+  //   {
+  //     Serial.println("fr:强制刷新 todo");
+  //     strcpy(runningValue.todoLastModified, "");
+  //     saveRunningValue(runningValue);
+  //     updating = true;
+  //     downloadAndDrawTodo();
+  //     updating = false;
+  //   }
 
-    free(inputChar);
-  }
+  //   free(inputChar);
+  // }
 }

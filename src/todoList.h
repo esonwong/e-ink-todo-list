@@ -1,5 +1,13 @@
 #include <WiFiClientSecure.h>
+
+#ifdef ESP32
 #include <HTTPClient.h>
+#endif
+
+#ifdef ESP8266
+#include <ESP8266HTTPClient.h>
+#endif
+
 #include <GxEPD2_BW.h>
 #include "display.h"
 #include "store.h"
@@ -7,9 +15,10 @@
 #include "clock.h"
 #include "network.h"
 
-const char *savedTodoLastModifiedKey = "todoL";
 WiFiClientSecure client;
-HTTPClient http;
+HTTPClient https;
+
+int updating = false;
 
 String urlencode(String str)
 {
@@ -17,7 +26,7 @@ String urlencode(String str)
   char c;
   char code0;
   char code1;
-  char code2;
+  // char code2;
   for (int i = 0; i < str.length(); i++)
   {
     c = str.charAt(i);
@@ -42,7 +51,7 @@ String urlencode(String str)
       {
         code0 = c - 10 + 'A';
       }
-      code2 = '\0';
+      // code2 = '\0';
       encodedString += '%';
       encodedString += code0;
       encodedString += code1;
@@ -58,9 +67,19 @@ void downloadAndDrawTodo(String user = "eson", uint16_t color = GxEPD_BLACK)
   const char *apiRoot = apiUrl.getValue();
   const char *apikey = apiKey.getValue();
 
+#ifdef ESP32
   client.setCACert(rootCACertificate);
-  String savedTodoLastModified = getFromStore(savedTodoLastModifiedKey);
-  Serial.printf("Last-Modified: %d\n", savedTodoLastModified);
+#endif
+
+#ifdef ESP8266
+  X509List cert(rootCACertificate);
+  client.setTrustAnchors(&cert);
+  display.setRotation(1);
+#endif
+
+  String savedTodoLastModified = runningValue.todoLastModified;
+
+  Serial.println("Last-Modified: " + savedTodoLastModified);
 
   Serial.printf("download and draw %s todo\n", user.c_str());
 
@@ -70,15 +89,15 @@ void downloadAndDrawTodo(String user = "eson", uint16_t color = GxEPD_BLACK)
   Serial.printf("If-Modified-Since: %s\n", savedTodoLastModified.c_str());
   Serial.printf("Authorization: Bearer %s\n", apikey);
 
-  http.begin(client, url);
-  http.addHeader("If-Modified-Since", savedTodoLastModified);
-  http.addHeader("Authorization", "Bearer " + String(apikey));
+  https.begin(client, url);
+  https.addHeader("If-Modified-Since", savedTodoLastModified);
+  https.addHeader("Authorization", "Bearer " + String(apikey));
 
   const char *headerKeys[] = {"Content-Picture-Width", "Content-Picture-Height", "API-Version", "Last-Modified"};
-  http.collectHeaders(headerKeys, 4);
+  https.collectHeaders(headerKeys, 4);
 
-  int httpCode = http.GET();
-  int contentLength = http.getSize();
+  int httpCode = https.GET();
+  int contentLength = https.getSize();
 
   Serial.printf("HTTPS GET: %d\n", httpCode);
   Serial.printf("Content-Length: %d\n", contentLength);
@@ -89,7 +108,7 @@ void downloadAndDrawTodo(String user = "eson", uint16_t color = GxEPD_BLACK)
   }
   if (httpCode != HTTP_CODE_OK)
   {
-    Serial.printf("HTTPS GET failed, error: %s\n", http.errorToString(httpCode).c_str());
+    Serial.printf("HTTPS GET failed, error: %s\n", https.errorToString(httpCode).c_str());
     return;
   }
 
@@ -99,24 +118,26 @@ void downloadAndDrawTodo(String user = "eson", uint16_t color = GxEPD_BLACK)
     return;
   }
 
-  Serial.printf("headers count %d\n", http.headers());
-  for (int i = 0; i < http.headers(); i++)
+  Serial.printf("headers count %d\n", https.headers());
+  for (int i = 0; i < https.headers(); i++)
   {
-    String headerName = http.headerName(i);
-    String headerValue = http.header(i);
+    String headerName = https.headerName(i);
+    String headerValue = https.header(i);
     Serial.printf("header[%s]: %s\n", headerName.c_str(), headerValue.c_str());
   }
 
   uint8_t *buf = (uint8_t *)malloc(contentLength);
 
-  WiFiClient *stream = http.getStreamPtr();
-  int16_t w = http.header("Content-Picture-Width").toInt();
-  int16_t h = http.header("Content-Picture-Height").toInt();
+  WiFiClient *stream = https.getStreamPtr();
+  int16_t w = https.header("Content-Picture-Width").toInt();
+  int16_t h = https.header("Content-Picture-Height").toInt();
 
-  String lastModified = http.header("Last-Modified");
+  String lastModified = https.header("Last-Modified");
 
   Serial.printf("Last-Modified: %s\n", lastModified.c_str());
-  saveToStore(savedTodoLastModifiedKey, lastModified.c_str());
+
+  strcpy(runningValue.todoLastModified, lastModified.c_str());
+  saveRunningValue(runningValue);
 
   delay(1000);
 
@@ -125,7 +146,7 @@ void downloadAndDrawTodo(String user = "eson", uint16_t color = GxEPD_BLACK)
   Serial.printf("Read %d bytes\n", readBytes);
 
   Serial.println("Read all response body");
-  http.end();
+  https.end();
 
   initDisplay();
   display.fillScreen(GxEPD_WHITE);
@@ -138,7 +159,6 @@ void downloadAndDrawTodo(String user = "eson", uint16_t color = GxEPD_BLACK)
   } while (display.nextPage());
 #else
   display.drawBitmap(0, 0, buf, w, h, color);
-  drawCurrentTime();
   display.display();
 #endif
 
