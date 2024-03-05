@@ -14,6 +14,9 @@ WiFiManagerParameter apiUrl("apiUrl", "API URL", "", 200);
 void configModeCallback(WiFiManager *myWiFiManager)
 {
 
+  strcpy(runningValue.todoLastModified, "");
+  saveRunningValue(runningValue);
+
   initDisplay();
 
   displayLogln("Entered config mode");
