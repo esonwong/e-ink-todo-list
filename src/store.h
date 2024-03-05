@@ -84,7 +84,13 @@ void removeRunningValue()
   EEPROM.end();
 }
 
-Setting setting = loadSetting();
-RunningValue runningValue = loadRunningValue();
+Setting setting;
+RunningValue runningValue;
+
+void initStore()
+{
+  setting = loadSetting();
+  runningValue = loadRunningValue();
+}
 
 #endif // STORE_H

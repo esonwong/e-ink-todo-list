@@ -16,6 +16,7 @@ void setup()
   Serial.println();
   Serial.println("Steup Start");
 
+  initStore();
   initButton();
 
   if (initWifiWithManager())
