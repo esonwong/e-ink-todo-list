@@ -106,6 +106,16 @@ void downloadAndDrawTodo(String user = "eson", uint16_t color = GxEPD_BLACK)
     Serial.println("Not Modified");
     return;
   }
+  if (httpCode == HTTP_CODE_NO_CONTENT)
+  {
+    Serial.println("No Content");
+    display.fillScreen(GxEPD_WHITE);
+    display.setTextColor(GxEPD_BLACK);
+    display.setCursor(0, 0);
+    display.print("No Content");
+    display.display();
+    return;
+  }
   if (httpCode != HTTP_CODE_OK)
   {
     Serial.printf("HTTPS GET failed, error: %s\n", https.errorToString(httpCode).c_str());
