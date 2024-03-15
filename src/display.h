@@ -13,6 +13,7 @@ U8G2_FOR_ADAFRUIT_GFX u8g2Fonts;
 #define DC 0
 #define RST 2
 #define BUSY 4
+#define PAGES 4
 #endif
 
 #ifdef ESP8266
@@ -20,15 +21,20 @@ U8G2_FOR_ADAFRUIT_GFX u8g2Fonts;
 #define DC 4
 #define RST 2
 #define BUSY 5
+#define PAGES 10
 #endif
 
 #ifdef E_INK_750
 // GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT> display(GxEPD2_750_T7(CS, DC, RST, BUSY));
-GxEPD2_3C<GxEPD2_750c_Z08, GxEPD2_750c_Z08::HEIGHT / 15> display(GxEPD2_750c_Z08(CS, DC, RST, BUSY));
+GxEPD2_3C<GxEPD2_750c_Z08, GxEPD2_750c_Z08::HEIGHT / PAGES> display(GxEPD2_750c_Z08(CS, DC, RST, BUSY));
+#endif
+
+#ifdef E_INK_750_V1
+GxEPD2_BW<GxEPD2_750c, GxEPD2_750c::HEIGHT / PAGES> display(GxEPD2_750c(CS, DC, RST, BUSY));
 #endif
 
 #ifdef E_INK_290
-GxEPD2_BW<GxEPD2_290, GxEPD2_290::HEIGHT> display(GxEPD2_290(CS, DC, RST, BUSY));
+GxEPD2_BW<GxEPD2_290, GxEPD2_290::HEIGHT / PAGES> display(GxEPD2_290(CS, DC, RST, BUSY));
 #endif
 
 void initDisplay()
