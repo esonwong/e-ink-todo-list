@@ -8,18 +8,34 @@
 
 U8G2_FOR_ADAFRUIT_GFX u8g2Fonts;
 
+#ifdef ESP32
+#define CS 15
+#define DC 0
+#define RST 2
+#define BUSY 4
+#endif
+
+#ifdef ESP8266
+#define CS SS
+#define DC 4
+#define RST 2
+#define BUSY 5
+#endif
+
 #ifdef E_INK_750
-// GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT> display(GxEPD2_750_T7(/*CS=D8*/ 15, /*DC=D3*/ 0, /*RST=D4*/ 2, /*BUSY=D2*/ 4));
-GxEPD2_3C<GxEPD2_750c_Z08, GxEPD2_750c_Z08::HEIGHT / 2> display(GxEPD2_750c_Z08(/*CS=D8*/ 15, /*DC=D3*/ 0, /*RST=D4*/ 2, /*BUSY=D2*/ 4));
-#else
-GxEPD2_BW<GxEPD2_290, GxEPD2_290::HEIGHT> display(GxEPD2_290(/*CS=5*/ SS, /*DC=*/4, /*RST=*/2, /*BUSY=*/5));
+// GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT> display(GxEPD2_750_T7(CS, DC, RST, BUSY));
+GxEPD2_3C<GxEPD2_750c_Z08, GxEPD2_750c_Z08::HEIGHT / 3> display(GxEPD2_750c_Z08(CS, DC, RST, BUSY));
+#endif
+
+#ifdef E_INK_290
+GxEPD2_BW<GxEPD2_290, GxEPD2_290::HEIGHT> display(GxEPD2_290(CS, DC, RST, BUSY));
 #endif
 
 void initDisplay()
 {
   Serial.println("Initializing display...");
 
-#ifdef E_INK_750
+#ifdef ESP32
   SPI.end();
   SPI.begin(13, 14, 14, 0);
   display.init(115200, true, 2, false);
