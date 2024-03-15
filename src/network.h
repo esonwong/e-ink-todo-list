@@ -5,6 +5,7 @@
 #include "config.h"
 #include "display.h"
 #include "store.h"
+#include "clock.h"
 
 WiFiManager wifiManager;
 
@@ -43,13 +44,24 @@ void configModeCallback(WiFiManager *myWiFiManager)
   display.powerOff();
 }
 
-void saveConfigCallback()
+void savePreConfigCallback()
 {
   Serial.println("Should save config");
+  // Serial.print("WiFi SSID:");
+  // Serial.println(wifiManager.getWiFiSSID());
+  // Serial.print("WiFi Password:");
+  // Serial.println(wifiManager.getWiFiPass());
+}
+
+void saveConfigCallback()
+{
+  Serial.println("Should save network config");
   Serial.print("WiFi SSID:");
   Serial.println(wifiManager.getWiFiSSID());
   Serial.print("WiFi Password:");
   Serial.println(wifiManager.getWiFiPass());
+
+  setClock();
 }
 
 void setSaveParamsCallback()
@@ -87,11 +99,11 @@ bool initWifiWithManager()
   wifiManager.setConfigPortalTimeout(600);
   wifiManager.setConfigPortalBlocking(false);
   wifiManager.setConnectTimeout(20);
-  wifiManager.setConnectRetries(3);
+  wifiManager.setConnectRetries(2);
 
   wifiManager.setAPCallback(configModeCallback);
-  // wifiManager.setSaveConfigCallback(saveConfigCallback);
-  wifiManager.setPreSaveConfigCallback(saveConfigCallback);
+  wifiManager.setPreSaveConfigCallback(savePreConfigCallback);
+  wifiManager.setSaveConfigCallback(saveConfigCallback);
   wifiManager.setSaveParamsCallback(setSaveParamsCallback);
 
   wifiManager.setTitle("E-ink Todo List");
