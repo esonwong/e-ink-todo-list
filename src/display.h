@@ -13,15 +13,15 @@ U8G2_FOR_ADAFRUIT_GFX u8g2Fonts;
 #define DC 0
 #define RST 2
 #define BUSY 4
-#define PAGES 4
+#define PAGES 2
 #endif
 
 #ifdef ESP8266
-#define CS SS
+#define CS SS // 15
 #define DC 4
 #define RST 2
 #define BUSY 5
-#define PAGES 10
+#define PAGES 20
 #endif
 
 #ifdef E_INK_750

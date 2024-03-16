@@ -1,4 +1,5 @@
 #include <WiFiClientSecure.h>
+#include <algorithm>
 
 #ifdef ESP32
 #include <HTTPClient.h>
@@ -14,11 +15,13 @@
 #include "config.h"
 #include "clock.h"
 #include "network.h"
+#include <LittleFS.h>
 
 WiFiClientSecure client;
 HTTPClient https;
 
 int updating = false;
+String cachedFileName = "/todo.bitmap";
 
 String urlencode(String str)
 {
@@ -74,7 +77,6 @@ void downloadAndDrawTodo(String user = "eson", uint16_t color = GxEPD_BLACK)
 #ifdef ESP8266
   X509List cert(rootCACertificate);
   client.setTrustAnchors(&cert);
-  display.setRotation(1);
 #endif
 
   String savedTodoLastModified = runningValue.todoLastModified;
@@ -136,46 +138,106 @@ void downloadAndDrawTodo(String user = "eson", uint16_t color = GxEPD_BLACK)
     Serial.printf("header[%s]: %s\n", headerName.c_str(), headerValue.c_str());
   }
 
-  uint8_t *buf = (uint8_t *)malloc(contentLength);
-
   WiFiClient *stream = https.getStreamPtr();
   int16_t w = https.header("Content-Picture-Width").toInt();
   int16_t h = https.header("Content-Picture-Height").toInt();
 
   String lastModified = https.header("Last-Modified");
-
   Serial.printf("Last-Modified: %s\n", lastModified.c_str());
 
-  strcpy(runningValue.todoLastModified, lastModified.c_str());
-  saveRunningValue(runningValue);
-
-  delay(1000);
+  if (!LittleFS.begin())
+  {
+    Serial.println("An Error has occurred while mounting LittleFS");
+    return;
+  }
+  File file = LittleFS.open(cachedFileName, "w");
+  if (!file)
+  {
+    Serial.println("Failed to open file for writing");
+    return;
+  }
 
   Serial.println("Start reading response body");
-  int readBytes = stream->readBytes(buf, contentLength);
-  Serial.printf("Read %d bytes\n", readBytes);
+  int bitsDown = 0;
+  int bitsTotal = w * h;
+  int bytesRead = 0;
+
+  uint8_t buf[128];
+  while (https.connected() && (bytesRead = stream->readBytes(buf, std::min(128, bitsTotal - bitsDown))) > 0)
+  {
+    file.write(buf, bytesRead);
+    bitsDown += bytesRead;
+    // Serial.printf("Read %d bytes, %d/%d\n", bytesRead, bitsDown, bitsTotal);
+  }
+  file.close();
+
+  Serial.print("Free heap: ");
+  Serial.println(ESP.getFreeHeap());
 
   Serial.println("Read all response body");
   https.end();
+
+  strcpy(runningValue.todoLastModified, lastModified.c_str());
+  saveRunningValue(runningValue);
 
   initDisplay();
   display.fillScreen(GxEPD_WHITE);
 
 #ifdef E_INK_750
+  File readFile = LittleFS.open(cachedFileName, "r");
+  if (!readFile)
+  {
+    Serial.println("Failed to open file for reading");
+    return;
+  }
+
   do
   {
-    display.drawBitmap(0, 0, buf, w, h, color);
+    readFile.seek(0);
+    uint16_t x = 0;
+    uint16_t y = 0;
+    while (readFile.available())
+    {
+      readFile.read(buf, sizeof(buf));
+      // draw pixel from buf, 8 pixels in a byte, width is w, height is h
+      for (int i = 0; i < sizeof(buf); i++)
+      {
+        for (int j = 0; j < 8; j++)
+        {
+          if (x >= w)
+          {
+            x = 0;
+            y++;
+          }
+          if (y >= h)
+          {
+            break;
+          }
+          if (buf[i] & (0x80 >> j))
+          {
+            display.drawPixel(x, y, color);
+          }
+          x++;
+        }
+      }
+    }
     drawCurrentTime();
   } while (display.nextPage());
+  readFile.close();
+
+  // do
+  // {
+
+  //   display.drawBitmap(0, 0, bitmap, w, h, color);
+  //   drawCurrentTime();
+  // } while (display.nextPage());
+  // } while (display.nextPageBW());
 #else
   display.drawBitmap(0, 0, buf, w, h, color);
   display.display();
 #endif
 
-  free(buf);
   display.powerOff();
-
-  delay(5000);
 
   Serial.println("draw bitmap done");
 }

@@ -17,6 +17,18 @@ void setup()
   Serial.println();
   Serial.println("Steup Start");
 
+  // if File System is not formatted, format it
+  // if (!LittleFS.begin())
+  // {
+  //   Serial.println("An Error has occurred while mounting LittleFS, formatting...");
+  //   LittleFS.format();
+  //   if (!LittleFS.begin())
+  //   {
+  //     Serial.println("Formatting LittleFS failed!");
+  //     return;
+  //   }
+  // }
+
   initStore();
   initButton();
 
