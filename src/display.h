@@ -24,6 +24,10 @@ U8G2_FOR_ADAFRUIT_GFX u8g2Fonts;
 #define PAGES 20
 #endif
 
+#ifdef GDEW075Z08
+GxEPD2_3C<GxEPD2_750c_Z08, GxEPD2_750c_Z08::HEIGHT / PAGES> display(GxEPD2_750c_Z08(CS, DC, RST, BUSY));
+#endif
+
 #ifdef E_INK_750
 // GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT> display(GxEPD2_750_T7(CS, DC, RST, BUSY));
 GxEPD2_3C<GxEPD2_750c_Z08, GxEPD2_750c_Z08::HEIGHT / PAGES> display(GxEPD2_750c_Z08(CS, DC, RST, BUSY));
@@ -44,6 +48,8 @@ void initDisplay()
 #ifdef ESP32
   SPI.end();
   SPI.begin(13, 14, 14, 0);
+
+  // for Waveshare boards with "clever" reset circuit
   display.init(115200, true, 2, false);
 #else
   display.init(115200);
