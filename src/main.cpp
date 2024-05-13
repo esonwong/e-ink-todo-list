@@ -17,17 +17,10 @@ void setup()
   Serial.println();
   Serial.println("Steup Start");
 
-  // if File System is not formatted, format it
-  // if (!LittleFS.begin())
-  // {
-  //   Serial.println("An Error has occurred while mounting LittleFS, formatting...");
-  //   LittleFS.format();
-  //   if (!LittleFS.begin())
-  //   {
-  //     Serial.println("Formatting LittleFS failed!");
-  //     return;
-  //   }
-  // }
+  // Print chip information
+
+  Serial.print("Device ID: ");
+  Serial.println(ESP.getChipId());
 
   initStore();
   initButton();
@@ -61,29 +54,29 @@ void loop()
   }
 
   // wait input from Serial
-  // String input = Serial.readStringUntil('\n');
-  // if (input.length() > 0)
-  // {
-  //   Serial.print("input: ");
-  //   Serial.println(input);
-  //   char *inputChar = (char *)malloc(input.length() + 1);
+  String input = Serial.readStringUntil('\n');
+  if (input.length() > 0)
+  {
+    Serial.print("input: ");
+    Serial.println(input);
+    char *inputChar = (char *)malloc(input.length() + 1);
 
-  //   // 用 : 分割字符串
-  //   input.toCharArray(inputChar, input.length() + 1);
-  //   char *command = strtok(inputChar, ":");
-  //   Serial.print("command: ");
-  //   Serial.println(command);
+    // 用 : 分割字符串
+    input.toCharArray(inputChar, input.length() + 1);
+    char *command = strtok(inputChar, ":");
+    Serial.print("command: ");
+    Serial.println(command);
 
-  //   if (strcmp(command, "fr") == 0)
-  //   {
-  //     Serial.println("fr:强制刷新 todo");
-  //     strcpy(runningValue.todoLastModified, "");
-  //     saveRunningValue(runningValue);
-  //     updating = true;
-  //     downloadAndDrawTodo();
-  //     updating = false;
-  //   }
+    if (strcmp(command, "fr") == 0)
+    {
+      Serial.println("fr:强制刷新 todo");
+      strcpy(runningValue.todoLastModified, "");
+      saveRunningValue(runningValue);
+      updating = true;
+      downloadAndDrawTodo();
+      updating = false;
+    }
 
-  //   free(inputChar);
-  // }
+    free(inputChar);
+  }
 }

@@ -148,6 +148,13 @@ void downloadAndDrawTodo(String user = "eson", uint16_t color = GxEPD_BLACK)
   if (!LittleFS.begin())
   {
     Serial.println("An Error has occurred while mounting LittleFS");
+    Serial.println("Formatting LittleFS...");
+    LittleFS.format();
+    if (!LittleFS.begin())
+    {
+      Serial.println("Formatting LittleFS failed!");
+      return;
+    }
     return;
   }
   File file = LittleFS.open(cachedFileName, "w");
@@ -233,8 +240,23 @@ void downloadAndDrawTodo(String user = "eson", uint16_t color = GxEPD_BLACK)
   // } while (display.nextPage());
   // } while (display.nextPageBW());
 #else
-  display.drawBitmap(0, 0, buf, w, h, color);
+  File readFile = LittleFS.open(cachedFileName, "r");
+  if (!readFile)
+  {
+    Serial.println("Failed to open file for reading");
+    return;
+  }
+  uint8_t *bitmap = (uint8_t *)malloc(w * h / 8);
+  if (!bitmap)
+  {
+    Serial.println("Failed to malloc bitmap");
+    return;
+  }
+  readFile.read(bitmap, w * h / 8);
+  display.drawBitmap(0, 0, bitmap, w, h, color);
   display.display();
+  free(bitmap);
+  readFile.close();
 #endif
 
   display.powerOff();
