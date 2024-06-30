@@ -38,7 +38,7 @@ GxEPD2_BW<GxEPD2_750c, GxEPD2_750c::HEIGHT / PAGES> display(GxEPD2_750c(CS, DC, 
 #endif
 
 #ifdef E_INK_290
-GxEPD2_BW<GxEPD2_290, GxEPD2_290::HEIGHT / PAGES> display(GxEPD2_290(CS, DC, RST, BUSY));
+GxEPD2_BW<GxEPD2_290, GxEPD2_290::HEIGHT> display(GxEPD2_290(CS, DC, RST, BUSY));
 #endif
 
 void initDisplay()
