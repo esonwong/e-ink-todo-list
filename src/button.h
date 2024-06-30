@@ -4,7 +4,7 @@
 #include <OneButton.h>
 #include "network.h"
 
-OneButton button(BUTTON_PIN, true);
+OneButton button(BUTTON_PIN);
 
 void buttonClick()
 {
@@ -32,12 +32,14 @@ void buttonDoubleClick()
 void buttonLongPress()
 {
   Serial.println("Button long pressed");
-  wifiManager.startConfigPortal(AP_SSID.c_str(), AP_PASSWORD.c_str());
+  // wifiManager.startConfigPortal(AP_SSID.c_str(), AP_PASSWORD.c_str());
 }
 
 void initButton()
 {
+
   Serial.println("Initializing button...");
+
   button.attachClick(buttonClick);
   button.attachDoubleClick(buttonDoubleClick);
   button.attachLongPressStart(buttonLongPress);

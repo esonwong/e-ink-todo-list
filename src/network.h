@@ -99,7 +99,7 @@ bool initWifiWithManager()
   wifiManager.setConfigPortalTimeout(600);
   wifiManager.setConfigPortalBlocking(false);
   wifiManager.setConnectTimeout(30);
-  wifiManager.setConnectRetries(3);
+  wifiManager.setConnectRetries(5);
 
   wifiManager.setAPCallback(configModeCallback);
   wifiManager.setPreSaveConfigCallback(savePreConfigCallback);

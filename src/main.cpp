@@ -45,7 +45,7 @@ void loop()
 
   // 每 1 分钟检查一次是否需要更新 todo
   time_t now = time(nullptr);
-  if (now % 60 == 0 && !updating && WiFi.status() == WL_CONNECTED)
+  if (now - runningValue.lastCheck > 60 && !updating && WiFi.status() == WL_CONNECTED)
   {
     updating = true;
     downloadAndDrawTodo();

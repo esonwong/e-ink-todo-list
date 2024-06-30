@@ -15,6 +15,8 @@ const int settingSavedFlag = 0x1234;
 struct RunningValue
 {
   char todoLastModified[30] = "";
+  // last check time
+  time_t lastCheck = 0;
 };
 const int runningValueSavedFlag = 0x5678;
 

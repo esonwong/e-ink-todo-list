@@ -106,6 +106,11 @@ void downloadAndDrawTodo(String user = "eson", uint16_t color = GxEPD_BLACK)
   if (httpCode == HTTP_CODE_NOT_MODIFIED)
   {
     Serial.println("Not Modified");
+
+    time_t now = time(nullptr);
+    runningValue.lastCheck = now;
+    saveRunningValue(runningValue);
+
     return;
   }
   if (httpCode == HTTP_CODE_NO_CONTENT)
@@ -185,6 +190,7 @@ void downloadAndDrawTodo(String user = "eson", uint16_t color = GxEPD_BLACK)
   https.end();
 
   strcpy(runningValue.todoLastModified, lastModified.c_str());
+
   saveRunningValue(runningValue);
 
   initDisplay();
