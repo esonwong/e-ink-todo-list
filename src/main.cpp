@@ -23,7 +23,7 @@ void setup()
   Serial.println(ESP.getChipId());
 
   initStore();
-  initButton();
+  // initButton();
 
   if (initWifiWithManager())
   {
