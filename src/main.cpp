@@ -11,11 +11,6 @@
 
 OneButton button;
 
-void onWakeUp()
-{
-  Serial.println("onWakeUp");
-}
-
 void setup()
 {
 
@@ -32,14 +27,6 @@ void setup()
   initStore();
 
   button = initButton();
-
-  wifi_set_opmode(NULL_MODE);
-  wifi_fpm_set_sleep_type(LIGHT_SLEEP_T);
-  wifi_fpm_open();
-  gpio_pin_wakeup_enable(16, GPIO_PIN_INTR_LOLEVEL);
-  wifi_fpm_set_wakeup_cb(onWakeUp);
-
-  wifi_fpm_do_sleep(3000);
 
   if (initWifiWithManager())
   {
@@ -68,31 +55,4 @@ void loop()
     delay(800);
     updating = false;
   }
-
-  // wait input from Serial
-  // String input = Serial.readStringUntil('\n');
-  // if (input.length() > 0)
-  // {
-  //   Serial.print("input: ");
-  //   Serial.println(input);
-  //   char *inputChar = (char *)malloc(input.length() + 1);
-
-  //   // 用 : 分割字符串
-  //   input.toCharArray(inputChar, input.length() + 1);
-  //   char *command = strtok(inputChar, ":");
-  //   Serial.print("command: ");
-  //   Serial.println(command);
-
-  //   if (strcmp(command, "fr") == 0)
-  //   {
-  //     Serial.println("fr:强制刷新 todo");
-  //     strcpy(runningValue.todoLastModified, "");
-  //     saveRunningValue(runningValue);
-  //     updating = true;
-  //     downloadAndDrawTodo();
-  //     updating = false;
-  //   }
-
-  //   free(inputChar);
-  // }
 }

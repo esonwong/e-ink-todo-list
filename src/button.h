@@ -5,6 +5,22 @@
 #include "network.h"
 #include "gpio16.h"
 
+void onWakeUp()
+{
+  Serial.println("onWakeUp");
+}
+
+void goToSleep(u32_t time)
+{
+  Serial.println("goToSleep");
+  wifi_set_opmode(NULL_MODE);
+  wifi_fpm_set_sleep_type(LIGHT_SLEEP_T);
+  wifi_fpm_open();
+  // gpio_pin_wakeup_enable(16, GPIO_PIN_INTR_LOLEVEL);
+  wifi_fpm_set_wakeup_cb(onWakeUp);
+  wifi_fpm_do_sleep(time);
+}
+
 void buttonClick()
 {
   Serial.println("Button clicked");
@@ -26,6 +42,7 @@ void buttonClick()
 void buttonDoubleClick()
 {
   Serial.println("Button double clicked");
+  goToSleep(10e6);
 }
 
 void buttonLongPress()
