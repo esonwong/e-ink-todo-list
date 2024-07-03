@@ -21,7 +21,7 @@ void turnOffLed()
   digitalWrite(LED_PIN, LOW);
 }
 
-void blinkLed(int blinkInterval)
+void blinkLed(long unsigned int blinkInterval)
 {
   unsigned long currentTime = millis();
 

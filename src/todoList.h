@@ -30,7 +30,7 @@ String urlencode(String str)
   char code0;
   char code1;
   // char code2;
-  for (int i = 0; i < str.length(); i++)
+  for (unsigned int i = 0; i < str.length(); i++)
   {
     c = str.charAt(i);
     if (c == ' ')
@@ -213,7 +213,7 @@ void downloadAndDrawTodo(String user = "eson", uint16_t color = GxEPD_BLACK)
     {
       readFile.read(buf, sizeof(buf));
       // draw pixel from buf, 8 pixels in a byte, width is w, height is h
-      for (int i = 0; i < sizeof(buf); i++)
+      for (unsigned int i = 0; i < sizeof(buf); i++)
       {
         for (int j = 0; j < 8; j++)
         {
