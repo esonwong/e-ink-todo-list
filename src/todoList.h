@@ -206,13 +206,12 @@ void downloadAndDrawTodo(uint16_t color = GxEPD_BLACK)
   https.end();
 
   strcpy(runningValue.todoLastModified, lastModified.c_str());
-
   saveRunningValue(runningValue);
 
   initDisplay();
   display.fillScreen(GxEPD_WHITE);
 
-#ifdef E_INK_750
+  // #ifdef E_INK_750
   File readFile = LittleFS.open(cachedFileName, "r");
   if (!readFile)
   {
@@ -253,35 +252,6 @@ void downloadAndDrawTodo(uint16_t color = GxEPD_BLACK)
     drawCurrentTime();
   } while (display.nextPage());
   readFile.close();
-
-  // do
-  // {
-
-  //   display.drawBitmap(0, 0, bitmap, w, h, color);
-  //   drawCurrentTime();
-  // } while (display.nextPage());
-  // } while (display.nextPageBW());
-#else
-  File readFile = LittleFS.open(cachedFileName, "r");
-  if (!readFile)
-  {
-    Serial.println("Failed to open file for reading");
-    return;
-  }
-  uint8_t *bitmap = (uint8_t *)malloc(w * h / 8);
-  if (!bitmap)
-  {
-    Serial.println("Failed to malloc bitmap");
-    return;
-  }
-  readFile.read(bitmap, w * h / 8);
-  display.drawBitmap(0, 0, bitmap, w, h, color);
-  display.display();
-  free(bitmap);
-  readFile.close();
-#endif
-
   display.powerOff();
-
   Serial.println("draw bitmap done");
 }
