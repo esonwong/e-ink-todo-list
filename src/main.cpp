@@ -20,7 +20,6 @@ void setup()
   Serial.println("Steup Start");
 
   // Print chip information
-
   Serial.print("Device ID: ");
   Serial.println(ESP.getChipId());
 
@@ -38,6 +37,8 @@ void setup()
     updating = true;
     downloadAndDrawTodo();
     updating = false;
+    runningValue.lastCheck = time(nullptr);
+    saveRunningValue(runningValue);
   }
 }
 
@@ -52,7 +53,8 @@ void loop()
   {
     updating = true;
     downloadAndDrawTodo();
-    delay(800);
     updating = false;
+    runningValue.lastCheck = time(nullptr);
+    saveRunningValue(runningValue);
   }
 }

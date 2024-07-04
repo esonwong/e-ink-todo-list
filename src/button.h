@@ -4,6 +4,7 @@
 #include <OneButton.h>
 #include "network.h"
 #include "gpio16.h"
+#include "store.h"
 
 void onWakeUp()
 {
@@ -31,11 +32,14 @@ void buttonClick()
     saveRunningValue(runningValue);
     updating = true;
     downloadAndDrawTodo();
+    runningValue.lastCheck = time(nullptr);
+    saveRunningValue(runningValue);
     updating = false;
   }
   else
   {
     Serial.println("WiFi not connected");
+    wifiManager.startConfigPortal(AP_SSID.c_str(), AP_PASSWORD.c_str());
   }
 }
 

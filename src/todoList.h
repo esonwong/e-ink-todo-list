@@ -65,7 +65,7 @@ String urlencode(String str)
   return encodedString;
 }
 
-void downloadAndDrawTodo(String user = "eson", uint16_t color = GxEPD_BLACK)
+void downloadAndDrawTodo(uint16_t color = GxEPD_BLACK)
 {
   const char *apiRoot = apiUrl.getValue();
   const char *apikey = apiKey.getValue();
@@ -83,8 +83,6 @@ void downloadAndDrawTodo(String user = "eson", uint16_t color = GxEPD_BLACK)
 
   Serial.println("Last-Modified: " + savedTodoLastModified);
 
-  Serial.printf("download and draw %s todo\n", user.c_str());
-
   String url = String(apiRoot) + "?width=" + String(display.width()) + "&height=" + String(display.height());
 
   Serial.printf("GET %s\n", url.c_str());
@@ -94,6 +92,7 @@ void downloadAndDrawTodo(String user = "eson", uint16_t color = GxEPD_BLACK)
   https.begin(client, url);
   https.addHeader("If-Modified-Since", savedTodoLastModified);
   https.addHeader("Authorization", "Bearer " + String(apikey));
+  https.addHeader("X-Device-Id", String(ESP.getChipId()));
 
   const char *headerKeys[] = {"Content-Picture-Width", "Content-Picture-Height", "API-Version", "Last-Modified"};
   https.collectHeaders(headerKeys, 4);
@@ -106,13 +105,10 @@ void downloadAndDrawTodo(String user = "eson", uint16_t color = GxEPD_BLACK)
   if (httpCode == HTTP_CODE_NOT_MODIFIED)
   {
     Serial.println("Not Modified");
-
-    time_t now = time(nullptr);
-    runningValue.lastCheck = now;
-    saveRunningValue(runningValue);
-
+    https.end();
     return;
   }
+
   if (httpCode == HTTP_CODE_NO_CONTENT)
   {
     Serial.println("No Content");
@@ -121,17 +117,21 @@ void downloadAndDrawTodo(String user = "eson", uint16_t color = GxEPD_BLACK)
     display.setCursor(0, 0);
     display.print("No Content");
     display.display();
+    https.end();
     return;
   }
+
   if (httpCode != HTTP_CODE_OK)
   {
     Serial.printf("HTTPS GET failed, error: %s\n", https.errorToString(httpCode).c_str());
+    https.end();
     return;
   }
 
   if (contentLength <= 0)
   {
     Serial.println("Content-Length not set");
+    https.end();
     return;
   }
 
@@ -158,14 +158,15 @@ void downloadAndDrawTodo(String user = "eson", uint16_t color = GxEPD_BLACK)
     if (!LittleFS.begin())
     {
       Serial.println("Formatting LittleFS failed!");
+      https.end();
       return;
     }
-    return;
   }
   File file = LittleFS.open(cachedFileName, "w");
   if (!file)
   {
     Serial.println("Failed to open file for writing");
+    https.end();
     return;
   }
 
