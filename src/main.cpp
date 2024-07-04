@@ -11,6 +11,11 @@
 
 OneButton button;
 
+void onWakeUp()
+{
+  Serial.println("onWakeUp");
+}
+
 void setup()
 {
 
@@ -27,6 +32,14 @@ void setup()
   initStore();
 
   button = initButton();
+
+  wifi_set_opmode(NULL_MODE);
+  wifi_fpm_set_sleep_type(LIGHT_SLEEP_T);
+  wifi_fpm_open();
+  gpio_pin_wakeup_enable(16, GPIO_PIN_INTR_LOLEVEL);
+  wifi_fpm_set_wakeup_cb(onWakeUp);
+
+  wifi_fpm_do_sleep(3000);
 
   if (initWifiWithManager())
   {
