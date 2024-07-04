@@ -109,15 +109,30 @@ void downloadAndDrawTodo(uint16_t color = GxEPD_BLACK)
     return;
   }
 
+  if (httpCode == 401)
+  {
+    Serial.printf("HTTPS GET failed, error: API Key authorization failed\n");
+    https.end();
+    initDisplay();
+    display.fillScreen(GxEPD_WHITE);
+    display.setTextColor(GxEPD_BLACK);
+    display.setCursor(0, 0);
+    display.println("API Key authorization failed!");
+    display.println("Please long press the button to enter config mode!");
+    display.display();
+    return;
+  }
+
   if (httpCode == HTTP_CODE_NO_CONTENT)
   {
+    https.end();
+    initDisplay();
     Serial.println("No Content");
     display.fillScreen(GxEPD_WHITE);
     display.setTextColor(GxEPD_BLACK);
     display.setCursor(0, 0);
     display.print("No Content");
     display.display();
-    https.end();
     return;
   }
 
