@@ -25,6 +25,13 @@ void goToSleep(u32_t time)
 void buttonClick()
 {
   Serial.println("Button clicked");
+  if (wifiManager.getConfigPortalActive())
+  {
+    Serial.println("Config portal active, closing...");
+    wifiManager.stopConfigPortal();
+    return;
+  }
+
   if (WiFi.status() == WL_CONNECTED)
   {
     Serial.println("force update todo");
@@ -46,7 +53,6 @@ void buttonClick()
 void buttonDoubleClick()
 {
   Serial.println("Button double clicked");
-  goToSleep(10e6);
 }
 
 void buttonLongPress()

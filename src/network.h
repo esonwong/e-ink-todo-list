@@ -20,12 +20,6 @@ void configModeCallback(WiFiManager *myWiFiManager)
 
   initDisplay();
 
-  displayLogln("Entered config mode");
-  displayLogln("Please connect to the AP: " + String(myWiFiManager->getConfigPortalSSID()));
-  displayLogln("Password: " + AP_PASSWORD);
-  displayLogln("Config Web Server: http://" + WiFi.softAPIP().toString());
-
-#ifdef E_INK_750
   do
   {
     display.fillScreen(GxEPD_WHITE);
@@ -36,10 +30,6 @@ void configModeCallback(WiFiManager *myWiFiManager)
     display.println("Password: " + AP_PASSWORD);
     display.println("Config Web Server: http://" + WiFi.softAPIP().toString());
   } while (display.nextPage());
-
-#else
-  display.display(true);
-#endif
 
   display.powerOff();
 }
@@ -60,7 +50,6 @@ void saveConfigCallback()
   Serial.println(wifiManager.getWiFiSSID());
   Serial.print("WiFi Password:");
   Serial.println(wifiManager.getWiFiPass());
-
   setClock();
 }
 
@@ -76,6 +65,20 @@ void setSaveParamsCallback()
   strcpy(setting.apiUrl, apiUrl.getValue());
 
   saveSetting(setting);
+  wifiManager.stopConfigPortal();
+}
+
+void configPortalTimeoutCallback()
+{
+  Serial.println("Config portal timeout");
+  initDisplay();
+  display.fillScreen(GxEPD_WHITE);
+  display.setTextColor(GxEPD_BLACK);
+  display.setCursor(0, 0);
+  display.println("Config portal timeout");
+  display.println("Please restart the device");
+  display.display();
+  display.powerOff();
 }
 
 bool initWifiWithManager()
@@ -105,6 +108,7 @@ bool initWifiWithManager()
   wifiManager.setPreSaveConfigCallback(savePreConfigCallback);
   wifiManager.setSaveConfigCallback(saveConfigCallback);
   wifiManager.setSaveParamsCallback(setSaveParamsCallback);
+  wifiManager.setConfigPortalTimeoutCallback(configPortalTimeoutCallback);
 
   wifiManager.setTitle("E-ink Todo List");
 
