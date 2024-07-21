@@ -65,7 +65,7 @@ void setSaveParamsCallback()
   strcpy(setting.apiUrl, apiUrl.getValue());
 
   saveSetting(setting);
-  wifiManager.stopConfigPortal();
+  // wifiManager.stopConfigPortal();
 }
 
 void configPortalTimeoutCallback()
@@ -75,8 +75,7 @@ void configPortalTimeoutCallback()
   display.fillScreen(GxEPD_WHITE);
   display.setTextColor(GxEPD_BLACK);
   display.setCursor(0, 0);
-  display.println("Config portal timeout");
-  display.println("Please restart the device");
+  display.println("Config portal timeout!");
   display.display();
   display.powerOff();
 }
