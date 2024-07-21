@@ -35,12 +35,9 @@ void buttonClick()
   if (WiFi.status() == WL_CONNECTED)
   {
     Serial.println("force update todo");
-    strcpy(runningValue.todoLastModified, "");
-    saveRunningValue(runningValue);
+    removeRunningValue();
     updating = true;
     downloadAndDrawTodo();
-    runningValue.lastCheck = time(nullptr);
-    saveRunningValue(runningValue);
     updating = false;
   }
   else

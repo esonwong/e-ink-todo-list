@@ -67,6 +67,10 @@ String urlencode(String str)
 
 void downloadAndDrawTodo(uint16_t color = GxEPD_BLACK)
 {
+
+  runningValue.lastCheck = time(nullptr);
+  saveRunningValue(runningValue);
+
   const char *apiRoot = apiUrl.getValue();
   const char *apikey = apiKey.getValue();
 

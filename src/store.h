@@ -78,16 +78,17 @@ RunningValue loadRunningValue()
   return runningValue;
 }
 
+Setting setting;
+RunningValue runningValue;
+
 void removeRunningValue()
 {
   EEPROM.begin(512);
   EEPROM.put(sizeof(int) + sizeof(Setting), 0);
   EEPROM.commit();
   EEPROM.end();
+  runningValue = loadRunningValue();
 }
-
-Setting setting;
-RunningValue runningValue;
 
 void initStore()
 {

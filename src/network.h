@@ -15,9 +15,6 @@ WiFiManagerParameter apiUrl("apiUrl", "API URL", "", 200);
 void configModeCallback(WiFiManager *myWiFiManager)
 {
 
-  strcpy(runningValue.todoLastModified, "");
-  saveRunningValue(runningValue);
-
   initDisplay();
 
   do
@@ -50,7 +47,6 @@ void saveConfigCallback()
   Serial.println(wifiManager.getWiFiSSID());
   Serial.print("WiFi Password:");
   Serial.println(wifiManager.getWiFiPass());
-  setClock();
 }
 
 void setSaveParamsCallback()
@@ -65,7 +61,10 @@ void setSaveParamsCallback()
   strcpy(setting.apiUrl, apiUrl.getValue());
 
   saveSetting(setting);
-  // wifiManager.stopConfigPortal();
+
+  removeRunningValue();
+  // reset the device
+  ESP.restart();
 }
 
 void configPortalTimeoutCallback()

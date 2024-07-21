@@ -37,8 +37,6 @@ void setup()
     updating = true;
     downloadAndDrawTodo();
     updating = false;
-    runningValue.lastCheck = time(nullptr);
-    saveRunningValue(runningValue);
   }
 }
 
@@ -54,7 +52,5 @@ void loop()
     updating = true;
     downloadAndDrawTodo();
     updating = false;
-    runningValue.lastCheck = time(nullptr);
-    saveRunningValue(runningValue);
   }
 }
