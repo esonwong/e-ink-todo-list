@@ -61,54 +61,13 @@ void initDisplay()
 
   display.setFullWindow();
   display.setRotation(0);
+#ifdef E_INK_290
+  display.setRotation(1);
+#endif
   display.fillScreen(GxEPD_WHITE);
   display.setTextColor(GxEPD_BLACK);
 
   Serial.println("初始化屏幕完成");
-}
-
-void displayLogln(String log)
-{
-
-#ifdef E_INK_750
-  Serial.println(log);
-  return;
-#endif
-
-  if (display.getCursorY() > display.height() - 10)
-  {
-    display.fillScreen(GxEPD_WHITE);
-    display.setCursor(0, 0);
-    display.println(log);
-    display.display(false);
-  }
-  else
-  {
-    display.println(log);
-    display.display(true);
-  }
-}
-
-void displayLog(String log)
-{
-
-#ifdef E_INK_750
-  Serial.print(log);
-  return;
-#endif
-
-  if (display.getCursorY() > display.height() - 10)
-  {
-    display.fillScreen(GxEPD_WHITE);
-    display.setCursor(0, 0);
-    display.print(log);
-    display.display(false);
-  }
-  else
-  {
-    display.print(log);
-    display.display(true);
-  }
 }
 
 #endif

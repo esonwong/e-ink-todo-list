@@ -83,7 +83,6 @@ bool initWifiWithManager()
 {
 
   Serial.println("Connecting to WiFi...");
-  displayLogln("Connecting to WiFi...");
   Serial.println(WiFi.waitForConnectResult());
 
   Serial.println("API Key: " + String(setting.apiKey));
@@ -115,8 +114,6 @@ bool initWifiWithManager()
 
     Serial.println("Connected to WiFi");
     Serial.println(WiFi.waitForConnectResult());
-    displayLogln("Connected to WiFi: " + WiFi.SSID());
-    displayLogln("IP: " + WiFi.localIP().toString());
     return true;
   }
   return false;
