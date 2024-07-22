@@ -31,15 +31,7 @@ void configModeCallback(WiFiManager *myWiFiManager)
   display.powerOff();
 }
 
-void savePreConfigCallback()
-{
-  Serial.println("Should save config");
-  // Serial.print("WiFi SSID:");
-  // Serial.println(wifiManager.getWiFiSSID());
-  // Serial.print("WiFi Password:");
-  // Serial.println(wifiManager.getWiFiPass());
-}
-
+// This gets called when custom parameters have been set AND a connection has been established.
 void saveConfigCallback()
 {
   Serial.println("Should save network config");
@@ -47,6 +39,8 @@ void saveConfigCallback()
   Serial.println(wifiManager.getWiFiSSID());
   Serial.print("WiFi Password:");
   Serial.println(wifiManager.getWiFiPass());
+
+  setClock();
 }
 
 void setSaveParamsCallback()
@@ -102,7 +96,6 @@ bool initWifiWithManager()
   wifiManager.setConnectRetries(3);
 
   wifiManager.setAPCallback(configModeCallback);
-  wifiManager.setPreSaveConfigCallback(savePreConfigCallback);
   wifiManager.setSaveConfigCallback(saveConfigCallback);
   wifiManager.setSaveParamsCallback(setSaveParamsCallback);
   wifiManager.setConfigPortalTimeoutCallback(configPortalTimeoutCallback);
