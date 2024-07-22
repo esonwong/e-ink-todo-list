@@ -64,7 +64,7 @@ void setSaveParamsCallback()
 
   removeRunningValue();
   // reset the device
-  ESP.restart();
+  // ESP.restart();
 }
 
 void configPortalTimeoutCallback()
