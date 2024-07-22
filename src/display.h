@@ -60,19 +60,10 @@ void initDisplay()
 #endif
 
   display.setFullWindow();
-
-#ifdef E_INK_750
-  display.fillScreen(GxEPD_BLACK);
   display.setRotation(0);
-  display.setTextColor(GxEPD_WHITE);
-  display.setTextSize(2);
-  display.setCursor(20, 20);
-#else
-  display.setRotation(1);
-  display.setCursor(0, 0);
   display.fillScreen(GxEPD_WHITE);
   display.setTextColor(GxEPD_BLACK);
-#endif
+
   Serial.println("初始化屏幕完成");
 }
 
