@@ -27,8 +27,7 @@ void buttonClick()
   Serial.println("Button clicked");
   if (wifiManager.getConfigPortalActive())
   {
-    Serial.println("Config portal active, closing...");
-    wifiManager.stopConfigPortal();
+    Serial.println("Config portal active");
     return;
   }
 
@@ -55,7 +54,9 @@ void buttonDoubleClick()
 void buttonLongPress()
 {
   Serial.println("Button long pressed");
-  wifiManager.startConfigPortal(AP_SSID.c_str(), AP_PASSWORD.c_str());
+  Serial.println("Erasing Config, restarting");
+  wifiManager.resetSettings();
+  ESP.restart();
 }
 
 OneButton initButton()

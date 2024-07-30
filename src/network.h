@@ -57,8 +57,6 @@ void setSaveParamsCallback()
   saveSetting(setting);
 
   removeRunningValue();
-  // reset the device
-  // ESP.restart();
 }
 
 void configPortalTimeoutCallback()
@@ -99,6 +97,9 @@ bool initWifiWithManager()
   wifiManager.setSaveConfigCallback(saveConfigCallback);
   wifiManager.setSaveParamsCallback(setSaveParamsCallback);
   wifiManager.setConfigPortalTimeoutCallback(configPortalTimeoutCallback);
+
+  std::vector<const char *> menu = {"wifi", "info", "restart", "exit"};
+  wifiManager.setMenu(menu);
 
   wifiManager.setTitle("E-ink Todo List");
 

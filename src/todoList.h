@@ -68,6 +68,12 @@ String urlencode(String str)
 void downloadAndDrawTodo(uint16_t color = GxEPD_BLACK)
 {
 
+  if (wifiManager.getConfigPortalActive())
+  {
+    Serial.println("Config portal active");
+    return;
+  }
+
   runningValue.lastCheck = time(nullptr);
   saveRunningValue(runningValue);
 
@@ -199,7 +205,6 @@ void downloadAndDrawTodo(uint16_t color = GxEPD_BLACK)
   {
     file.write(buf, bytesRead);
     bitsDown += bytesRead;
-    // Serial.printf("Read %d bytes, %d/%d\n", bytesRead, bitsDown, bitsTotal);
   }
   file.close();
 
