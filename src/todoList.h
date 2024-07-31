@@ -103,7 +103,9 @@ void downloadAndDrawTodo(uint16_t color = GxEPD_BLACK)
   https.addHeader("If-Modified-Since", savedTodoLastModified);
   https.addHeader("Authorization", "Bearer " + String(apikey));
   https.addHeader("X-Device-Id", String(ESP.getChipId()));
+#ifdef GIT_VERSION
   https.addHeader("X-Device-Firmware-Version", GIT_VERSION);
+#endif
 
   const char *headerKeys[] = {"Content-Picture-Width", "Content-Picture-Height", "API-Version", "Last-Modified"};
   https.collectHeaders(headerKeys, 4);

@@ -19,8 +19,10 @@ void setup()
   // Serial.setDebugOutput(true);
   Serial.println();
   Serial.println("Steup Start");
+#ifdef GIT_VERSION
   Serial.print("Version: ");
   Serial.println(GIT_VERSION);
+#endif
   Serial.print("API URL: ");
   Serial.println(setting.apiUrl);
 
