@@ -8,6 +8,7 @@
 #include "display.h"
 #include "clock.h"
 #include "button.h"
+#include "store.h"
 
 OneButton button;
 
@@ -20,6 +21,8 @@ void setup()
   Serial.println("Steup Start");
   Serial.print("Version: ");
   Serial.println(GIT_VERSION);
+  Serial.print("API URL: ");
+  Serial.println(setting.apiUrl);
 
   // Print chip information
   Serial.print("Device ID: ");

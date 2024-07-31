@@ -7,7 +7,7 @@ const char *storeName = "einktodo.com";
 struct Setting
 {
   char apiKey[41] = "";
-  char apiUrl[200] = "https://www.einktodo.com/api/display/v2";
+  char apiUrl[200] = DEFAULT_API_URL;
 };
 
 const int settingSavedFlag = 0x1234;
