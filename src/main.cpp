@@ -18,6 +18,8 @@ void setup()
   // Serial.setDebugOutput(true);
   Serial.println();
   Serial.println("Steup Start");
+  Serial.print("Version: ");
+  Serial.println(GIT_VERSION);
 
   // Print chip information
   Serial.print("Device ID: ");
