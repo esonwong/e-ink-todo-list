@@ -26,9 +26,20 @@ void configModeCallback(WiFiManager *myWiFiManager)
     display.println("Please connect to the AP: " + String(myWiFiManager->getConfigPortalSSID()));
     display.println("Password: " + AP_PASSWORD);
     display.println("Config Web Server: http://" + WiFi.softAPIP().toString());
+#ifdef GIT_VERSION
+    display.println("Version: " + String(GIT_VERSION));
+#endif
+
+    // Todo: Show AP QR Code
+
   } while (display.nextPage());
 
   display.powerOff();
+}
+
+void preSaveConfigCallback()
+{
+  Serial.println("Should save network config");
 }
 
 // This gets called when custom parameters have been set AND a connection has been established.
@@ -94,6 +105,7 @@ bool initWifiWithManager()
   wifiManager.setConnectRetries(3);
 
   wifiManager.setAPCallback(configModeCallback);
+  wifiManager.setPreSaveConfigCallback(preSaveConfigCallback);
   wifiManager.setSaveConfigCallback(saveConfigCallback);
   wifiManager.setSaveParamsCallback(setSaveParamsCallback);
   wifiManager.setConfigPortalTimeoutCallback(configPortalTimeoutCallback);

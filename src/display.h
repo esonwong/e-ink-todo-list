@@ -61,9 +61,11 @@ void initDisplay()
 
   display.setFullWindow();
   display.setRotation(0);
+
 #ifdef E_INK_290
   display.setRotation(1);
 #endif
+
   display.fillScreen(GxEPD_WHITE);
   display.setTextColor(GxEPD_BLACK);
 
