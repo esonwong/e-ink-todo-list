@@ -102,7 +102,7 @@ void downloadAndDrawTodo(uint16_t color = GxEPD_BLACK)
   https.begin(client, url);
   https.addHeader("If-Modified-Since", savedTodoLastModified);
   https.addHeader("Authorization", "Bearer " + String(apikey));
-  https.addHeader("X-Device-Id", String(ESP.getChipId()));
+  https.addHeader("X-Device-Id", DeviceID);
 #ifdef GIT_VERSION
   https.addHeader("X-Device-Firmware-Version", GIT_VERSION);
 #endif

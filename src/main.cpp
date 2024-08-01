@@ -26,13 +26,30 @@ void setup()
   Serial.print("API URL: ");
   Serial.println(setting.apiUrl);
 
+#ifdef ESP32
+  DeviceID = String((uint32_t)ESP.getEfuseMac(), HEX);
+#else
+  DeviceID = String(ESP.getChipId());
+#endif
+
   // Print chip information
   Serial.print("Device ID: ");
-  Serial.println(ESP.getChipId());
+  Serial.println(DeviceID);
+  initDisplay();
+  showLaunchScreen();
 
   initStore();
 
   button = initButton();
+
+#if defined(WIFI_SSID) && defined(WIFI_PASS)
+  // For debugging
+  Serial.print("WiFi SSID: ");
+  Serial.println(WIFI_SSID);
+  Serial.print("WiFi Password: ");
+  Serial.println(WIFI_PASS);
+  wifiManager.preloadWiFi(WIFI_SSID, WIFI_PASS);
+#endif
 
   if (initWifiWithManager())
   {

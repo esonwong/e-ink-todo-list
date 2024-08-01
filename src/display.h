@@ -61,15 +61,38 @@ void initDisplay()
 
   display.setFullWindow();
   display.setRotation(0);
+  display.setTextSize(2);
 
 #ifdef E_INK_290
   display.setRotation(1);
+  display.setTextSize(1);
 #endif
 
   display.fillScreen(GxEPD_WHITE);
   display.setTextColor(GxEPD_BLACK);
 
   Serial.println("初始化屏幕完成");
+}
+
+void showLaunchScreen()
+{
+  do
+  {
+    display.fillScreen(GxEPD_WHITE);
+    display.setCursor(0, 0);
+    int16_t x, y;
+    uint16_t w1, w2, h1, h2;
+    const char *name = "E-Ink Todo List";
+    const char *author = "by @Eson";
+    display.setTextSize(3);
+    display.getTextBounds(name, 0, 0, &x, &y, &w1, &h1);
+    display.setCursor((display.width() - w1) / 2, display.height() / 2 - h1);
+    display.println(name);
+    display.setTextSize(2);
+    display.getTextBounds(author, 0, 0, &x, &y, &w2, &h2);
+    display.setCursor((display.width() - w2) / 2, display.height() / 2 + h1 / 2);
+    display.println(author);
+  } while (display.nextPage());
 }
 
 #endif

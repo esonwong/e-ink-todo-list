@@ -5,6 +5,7 @@
 
 String AP_SSID = "E-ink Todo List AP";
 String AP_PASSWORD = "einktodo.com";
+String DeviceID;
 
 int LED_PIN = 2;
 

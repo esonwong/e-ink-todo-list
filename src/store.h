@@ -93,6 +93,9 @@ void removeRunningValue()
 void initStore()
 {
   setting = loadSetting();
+#ifdef API_KEY
+  strcpy(setting.apiKey, API_KEY);
+#endif
   runningValue = loadRunningValue();
 }
 
