@@ -19,18 +19,26 @@ void setup()
   // Serial.setDebugOutput(true);
   Serial.println();
   Serial.println("Steup Start");
+
+  if (!LittleFS.begin())
+  {
+    Serial.println("An Error has occurred while mounting LittleFS");
+    return;
+  }
+
+#ifdef DEBUG
+  delay(3000);
+#endif
+
 #ifdef GIT_VERSION
   Serial.print("Version: ");
   Serial.println(GIT_VERSION);
 #endif
+
   Serial.print("API URL: ");
   Serial.println(setting.apiUrl);
 
-#ifdef ESP32
-  DeviceID = String((uint32_t)ESP.getEfuseMac(), HEX);
-#else
   DeviceID = String(ESP.getChipId());
-#endif
 
   // Print chip information
   Serial.print("Device ID: ");

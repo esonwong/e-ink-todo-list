@@ -1,27 +1,18 @@
-#include <WiFiClientSecure.h>
+#include <CertStoreBearSSL.h>
 #include <algorithm>
-
-#ifdef ESP32
-#include <HTTPClient.h>
-#endif
-
-#ifdef ESP8266
-#include <ESP8266HTTPClient.h>
-#endif
-
 #include <GxEPD2_BW.h>
 #include "display.h"
 #include "store.h"
 #include "config.h"
 #include "clock.h"
 #include "network.h"
+#include <FS.h>
 #include <LittleFS.h>
-
-WiFiClientSecure client;
-HTTPClient https;
+#include <ESP8266HTTPClient.h>
 
 int updating = false;
 String cachedFileName = "/todo.bitmap";
+BearSSL::CertStore certStore;
 
 String urlencode(String str)
 {
@@ -68,26 +59,28 @@ String urlencode(String str)
 void downloadAndDrawTodo(uint16_t color = GxEPD_BLACK)
 {
 
+  runningValue.lastCheck = time(nullptr);
+  saveRunningValue(runningValue);
+
   if (wifiManager.getConfigPortalActive())
   {
     Serial.println("Config portal active");
     return;
   }
 
-  runningValue.lastCheck = time(nullptr);
-  saveRunningValue(runningValue);
-
   const char *apiRoot = apiUrl.getValue();
   const char *apikey = apiKey.getValue();
 
-#ifdef ESP32
-  client.setCACert(rootCACertificate);
-#endif
+  int numCerts = certStore.initCertStore(LittleFS, PSTR("/certs.idx"), PSTR("/certs.ar"));
+  Serial.printf("Number of CA certs read: %d\n", numCerts);
+  if (numCerts == 0)
+  {
+    Serial.printf("No certs found. Did you run certs-from-mozilla.py and upload the LittleFS directory before running?\n");
+    return; // Can't connect to anything w/o certs!
+  }
 
-#ifdef ESP8266
-  X509List cert(rootCACertificate);
-  client.setTrustAnchors(&cert);
-#endif
+  BearSSL::WiFiClientSecure client;
+  client.setCertStore(&certStore);
 
   String savedTodoLastModified = runningValue.todoLastModified;
 
@@ -99,6 +92,7 @@ void downloadAndDrawTodo(uint16_t color = GxEPD_BLACK)
   Serial.printf("If-Modified-Since: %s\n", savedTodoLastModified.c_str());
   Serial.printf("Authorization: Bearer %s\n", apikey);
 
+  HTTPClient https;
   https.begin(client, url);
   https.addHeader("If-Modified-Since", savedTodoLastModified);
   https.addHeader("Authorization", "Bearer " + String(apikey));
@@ -178,18 +172,6 @@ void downloadAndDrawTodo(uint16_t color = GxEPD_BLACK)
   String lastModified = https.header("Last-Modified");
   Serial.printf("Last-Modified: %s\n", lastModified.c_str());
 
-  if (!LittleFS.begin())
-  {
-    Serial.println("An Error has occurred while mounting LittleFS");
-    Serial.println("Formatting LittleFS...");
-    LittleFS.format();
-    if (!LittleFS.begin())
-    {
-      Serial.println("Formatting LittleFS failed!");
-      https.end();
-      return;
-    }
-  }
   File file = LittleFS.open(cachedFileName, "w");
   if (!file)
   {
