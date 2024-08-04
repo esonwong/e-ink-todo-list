@@ -67,7 +67,7 @@ void setSaveParamsCallback()
 
   saveSetting(setting);
 
-  removeRunningValue();
+  cleanRunningValue();
 }
 
 void configPortalTimeoutCallback()

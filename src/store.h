@@ -1,8 +1,7 @@
 #ifndef STORE_H
 #define STORE_H
-#include <EEPROM.h>
-
-const char *storeName = "einktodo.com";
+#include <LittleFS.h>
+#include <ArduinoJson.h>
 
 struct Setting
 {
@@ -10,90 +9,125 @@ struct Setting
   char apiUrl[200] = DEFAULT_API_URL;
 };
 
-const int settingSavedFlag = 0x1234;
-
 struct RunningValue
 {
   char todoLastModified[30] = "";
   // last check time
   time_t lastCheck = 0;
 };
-const int runningValueSavedFlag = 0x5678;
+
+Setting setting;
+RunningValue runningValue;
 
 void saveSetting(Setting setting)
 {
-  EEPROM.begin(512);
-  EEPROM.put(0, settingSavedFlag);
-  EEPROM.put(sizeof(int), setting);
-  EEPROM.commit();
-  EEPROM.end();
+  Serial.println("Save setting");
+  if (!LittleFS.begin())
+  {
+    Serial.println("An Error has occurred while mounting LittleFS");
+    return;
+  }
+  File file = LittleFS.open("/setting.json", "w");
+  if (!file)
+  {
+    Serial.println("Failed to open file for writing");
+    return;
+  }
+
+  JsonDocument settingJson;
+  settingJson["apiKey"] = setting.apiKey;
+  settingJson["apiUrl"] = setting.apiUrl;
+
+  serializeJson(settingJson, file);
+  file.close();
+  LittleFS.end();
 }
 
 Setting loadSetting()
 {
+  Serial.println("Load setting");
   Setting setting;
-  EEPROM.begin(512);
-  int flag;
-  EEPROM.get(0, flag);
-  if (flag != settingSavedFlag)
+  if (!LittleFS.begin())
   {
-    EEPROM.end();
+    Serial.println("An Error has occurred while mounting LittleFS");
     return setting;
   }
-  EEPROM.get(sizeof(int), setting);
-  EEPROM.end();
+  File file = LittleFS.open("/setting.json", "r");
+  if (!file)
+  {
+    Serial.println("Failed to open file for reading");
+    return setting;
+  }
+
+  JsonDocument settingJson;
+  DeserializationError error = deserializeJson(settingJson, file);
+  if (error)
+  {
+    Serial.println("Failed to read file");
+    file.close();
+    return setting;
+  }
+
+  strlcpy(setting.apiKey, settingJson["apiKey"] | "", sizeof(setting.apiKey));
+  strlcpy(setting.apiUrl, settingJson["apiUrl"] | DEFAULT_API_URL, sizeof(setting.apiUrl));
+
+  file.close();
+  LittleFS.end();
   return setting;
 }
 
 void removeSetting()
 {
-  EEPROM.begin(512);
-  EEPROM.put(0, 0);
-  EEPROM.commit();
-  EEPROM.end();
+  Serial.println("Remove setting");
+  if (!LittleFS.begin())
+  {
+    Serial.println("An Error has occurred while mounting LittleFS");
+    return;
+  }
+  LittleFS.remove("/setting.json");
+  LittleFS.end();
 }
 
 void saveRunningValue(RunningValue runningValue)
 {
-  EEPROM.begin(512);
-  EEPROM.put(sizeof(int) + sizeof(Setting), runningValueSavedFlag);
-  EEPROM.put(sizeof(int) + sizeof(Setting) + sizeof(int), runningValue);
-  EEPROM.commit();
-  EEPROM.end();
+  Serial.println("Save running value");
+  if (!LittleFS.begin())
+  {
+    Serial.println("An Error has occurred while mounting LittleFS");
+    return;
+  }
+  File file = LittleFS.open("/runningValue.json", "w");
+  if (!file)
+  {
+    Serial.println("Failed to open file for writing");
+    return;
+  }
+
+  JsonDocument runningValueJson;
+  runningValueJson["todoLastModified"] = runningValue.todoLastModified;
+  runningValueJson["lastCheck"] = runningValue.lastCheck;
+
+  serializeJson(runningValueJson, file);
+  file.close();
+  LittleFS.end();
 }
 
 RunningValue loadRunningValue()
 {
-  RunningValue runningValue;
-  EEPROM.begin(512);
-  int flag;
-  EEPROM.get(sizeof(int) + sizeof(Setting), flag);
-  if (flag != runningValueSavedFlag)
-  {
-    EEPROM.end();
-    return runningValue;
-  }
-  EEPROM.get(sizeof(int) + sizeof(Setting) + sizeof(int), runningValue);
-  EEPROM.end();
-  return runningValue;
+  return RunningValue();
 }
 
-Setting setting;
-RunningValue runningValue;
-
-void removeRunningValue()
+void cleanRunningValue()
 {
-  EEPROM.begin(512);
-  EEPROM.put(sizeof(int) + sizeof(Setting), 0);
-  EEPROM.commit();
-  EEPROM.end();
-  runningValue = loadRunningValue();
+  runningValue = RunningValue();
 }
 
 void initStore()
 {
+  Serial.println("Init store");
   setting = loadSetting();
 #ifdef API_KEY
+  // For debugging
   strcpy(setting.apiKey, API_KEY);
 #endif
   runningValue = loadRunningValue();

@@ -20,14 +20,23 @@ void setup()
   Serial.println();
   Serial.println("Steup Start");
 
+#ifdef DEBUG
+  delay(3000);
   if (!LittleFS.begin())
   {
     Serial.println("An Error has occurred while mounting LittleFS");
     return;
   }
 
-#ifdef DEBUG
-  delay(3000);
+  Serial.println("List files");
+  Dir dir = LittleFS.openDir("/");
+  while (dir.next())
+  {
+    Serial.print(dir.fileName());
+    Serial.print(" - ");
+    File f = dir.openFile("r");
+    Serial.println(f.size());
+  }
 #endif
 
 #ifdef GIT_VERSION
@@ -47,7 +56,6 @@ void setup()
   showLaunchScreen();
 
   initStore();
-
   button = initButton();
 
 #if defined(WIFI_SSID) && defined(WIFI_PASS)

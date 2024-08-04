@@ -1,4 +1,3 @@
-#include <CertStoreBearSSL.h>
 #include <algorithm>
 #include <GxEPD2_BW.h>
 #include "display.h"
@@ -9,10 +8,12 @@
 #include <FS.h>
 #include <LittleFS.h>
 #include <ESP8266HTTPClient.h>
+#include <CertStoreBearSSL.h>
 
 int updating = false;
 String cachedFileName = "/todo.bitmap";
 BearSSL::CertStore certStore;
+BearSSL::WiFiClientSecure client;
 
 String urlencode(String str)
 {
@@ -56,7 +57,84 @@ String urlencode(String str)
   return encodedString;
 }
 
-void downloadAndDrawTodo(uint16_t color = GxEPD_BLACK)
+void showNoContent()
+{
+  initDisplay();
+  do
+  {
+    display.fillScreen(GxEPD_WHITE);
+    display.setTextColor(GxEPD_BLACK);
+    display.setCursor(0, 0);
+    display.print("No Content");
+  } while (display.nextPage());
+}
+
+void show401()
+{
+  initDisplay();
+  do
+  {
+    display.fillScreen(GxEPD_WHITE);
+    display.setTextColor(GxEPD_BLACK);
+    display.setCursor(0, 0);
+    display.println("API Key authorization failed!");
+    display.println("Please long press the button to enter config mode!");
+  } while (display.nextPage());
+}
+
+void displayToScreen(String file = cachedFileName, uint16_t w = 0, uint16_t h = 0, uint16_t color = GxEPD_BLACK)
+{
+  initDisplay();
+  display.fillScreen(GxEPD_WHITE);
+
+  LittleFS.begin();
+  File readFile = LittleFS.open(file, "r");
+  if (!readFile)
+  {
+    Serial.println("Failed to open file for reading");
+    return;
+  }
+
+  do
+  {
+    readFile.seek(0);
+    uint16_t x = 0;
+    uint16_t y = 0;
+    uint8_t buf[128];
+    while (readFile.available())
+    {
+      readFile.read(buf, sizeof(buf));
+      // draw pixel from buf, 8 pixels in a byte, width is w, height is h
+      for (unsigned int i = 0; i < sizeof(buf); i++)
+      {
+        for (int j = 0; j < 8; j++)
+        {
+          if (x >= w)
+          {
+            x = 0;
+            y++;
+          }
+          if (y >= h)
+          {
+            break;
+          }
+          if (buf[i] & (0x80 >> j))
+          {
+            display.drawPixel(x, y, color);
+          }
+          x++;
+        }
+      }
+    }
+    drawCurrentTime();
+  } while (display.nextPage());
+  readFile.close();
+  LittleFS.end();
+  display.powerOff();
+  Serial.println("draw bitmap done");
+}
+
+void downloadAndDrawTodo()
 {
 
   runningValue.lastCheck = time(nullptr);
@@ -71,15 +149,16 @@ void downloadAndDrawTodo(uint16_t color = GxEPD_BLACK)
   const char *apiRoot = apiUrl.getValue();
   const char *apikey = apiKey.getValue();
 
+  LittleFS.begin();
   int numCerts = certStore.initCertStore(LittleFS, PSTR("/certs.idx"), PSTR("/certs.ar"));
   Serial.printf("Number of CA certs read: %d\n", numCerts);
   if (numCerts == 0)
   {
-    Serial.printf("No certs found. Did you run certs-from-mozilla.py and upload the LittleFS directory before running?\n");
+    Serial.println("No certs found. Need to run Upload Filesystem Image");
+    LittleFS.end();
     return; // Can't connect to anything w/o certs!
   }
 
-  BearSSL::WiFiClientSecure client;
   client.setCertStore(&certStore);
 
   String savedTodoLastModified = runningValue.todoLastModified;
@@ -113,6 +192,7 @@ void downloadAndDrawTodo(uint16_t color = GxEPD_BLACK)
   {
     Serial.println("Not Modified");
     https.end();
+    LittleFS.end();
     return;
   }
 
@@ -120,26 +200,17 @@ void downloadAndDrawTodo(uint16_t color = GxEPD_BLACK)
   {
     Serial.printf("HTTPS GET failed, error: API Key authorization failed\n");
     https.end();
-    initDisplay();
-    display.fillScreen(GxEPD_WHITE);
-    display.setTextColor(GxEPD_BLACK);
-    display.setCursor(0, 0);
-    display.println("API Key authorization failed!");
-    display.println("Please long press the button to enter config mode!");
-    display.display();
+    LittleFS.end();
+    show401();
     return;
   }
 
   if (httpCode == HTTP_CODE_NO_CONTENT)
   {
-    https.end();
-    initDisplay();
     Serial.println("No Content");
-    display.fillScreen(GxEPD_WHITE);
-    display.setTextColor(GxEPD_BLACK);
-    display.setCursor(0, 0);
-    display.print("No Content");
-    display.display();
+    https.end();
+    LittleFS.end();
+    showNoContent();
     return;
   }
 
@@ -147,6 +218,7 @@ void downloadAndDrawTodo(uint16_t color = GxEPD_BLACK)
   {
     Serial.printf("HTTPS GET failed, error: %s\n", https.errorToString(httpCode).c_str());
     https.end();
+    LittleFS.end();
     return;
   }
 
@@ -154,6 +226,7 @@ void downloadAndDrawTodo(uint16_t color = GxEPD_BLACK)
   {
     Serial.println("Content-Length not set");
     https.end();
+    LittleFS.end();
     return;
   }
 
@@ -166,8 +239,8 @@ void downloadAndDrawTodo(uint16_t color = GxEPD_BLACK)
   }
 
   WiFiClient *stream = https.getStreamPtr();
-  int16_t w = https.header("Content-Picture-Width").toInt();
-  int16_t h = https.header("Content-Picture-Height").toInt();
+  uint16_t w = https.header("Content-Picture-Width").toInt();
+  uint16_t h = https.header("Content-Picture-Height").toInt();
 
   String lastModified = https.header("Last-Modified");
   Serial.printf("Last-Modified: %s\n", lastModified.c_str());
@@ -177,6 +250,7 @@ void downloadAndDrawTodo(uint16_t color = GxEPD_BLACK)
   {
     Serial.println("Failed to open file for writing");
     https.end();
+    LittleFS.end();
     return;
   }
 
@@ -192,9 +266,7 @@ void downloadAndDrawTodo(uint16_t color = GxEPD_BLACK)
     bitsDown += bytesRead;
   }
   file.close();
-
-  Serial.print("Free heap: ");
-  Serial.println(ESP.getFreeHeap());
+  LittleFS.end();
 
   Serial.println("Read all response body");
   https.end();
@@ -202,50 +274,5 @@ void downloadAndDrawTodo(uint16_t color = GxEPD_BLACK)
   strcpy(runningValue.todoLastModified, lastModified.c_str());
   saveRunningValue(runningValue);
 
-  initDisplay();
-  display.fillScreen(GxEPD_WHITE);
-
-  // #ifdef E_INK_750
-  File readFile = LittleFS.open(cachedFileName, "r");
-  if (!readFile)
-  {
-    Serial.println("Failed to open file for reading");
-    return;
-  }
-
-  do
-  {
-    readFile.seek(0);
-    uint16_t x = 0;
-    uint16_t y = 0;
-    while (readFile.available())
-    {
-      readFile.read(buf, sizeof(buf));
-      // draw pixel from buf, 8 pixels in a byte, width is w, height is h
-      for (unsigned int i = 0; i < sizeof(buf); i++)
-      {
-        for (int j = 0; j < 8; j++)
-        {
-          if (x >= w)
-          {
-            x = 0;
-            y++;
-          }
-          if (y >= h)
-          {
-            break;
-          }
-          if (buf[i] & (0x80 >> j))
-          {
-            display.drawPixel(x, y, color);
-          }
-          x++;
-        }
-      }
-    }
-    drawCurrentTime();
-  } while (display.nextPage());
-  readFile.close();
-  display.powerOff();
-  Serial.println("draw bitmap done");
+  displayToScreen(cachedFileName, w, h, GxEPD_BLACK);
 }
