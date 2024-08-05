@@ -1,6 +1,13 @@
 name: PlatformIO CI
 
-on: [push]
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -21,3 +28,16 @@ jobs:
         run: pip install --upgrade platformio
       - name: Build PlatformIO Project
         run: pio run
+      - name: Build PlatformIO Project FS
+        run: pio run -t buildfs
+      - name: Create release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref_name }}
+        run: |
+          gh release create "$tag" \
+              --repo="$GITHUB_REPOSITORY" \
+              --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
+              --generate-notes \
+              '.pio/build/E-inktodo-Waveshare-750-W800/firmware.bin' '.pio/build/E-inktodo-Waveshare-750-W800/littlefs.bin'
+
