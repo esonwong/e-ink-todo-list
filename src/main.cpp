@@ -9,6 +9,7 @@
 #include "clock.h"
 #include "button.h"
 #include "store.h"
+#include "UpdateFS.h"
 
 OneButton button;
 
@@ -73,6 +74,8 @@ void setup()
     setClock();
 
     delay(1000);
+
+    updateFS();
 
     updating = true;
     downloadAndDrawTodo();

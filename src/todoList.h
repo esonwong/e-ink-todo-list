@@ -12,8 +12,6 @@
 
 int updating = false;
 String cachedFileName = "/todo.bitmap";
-BearSSL::CertStore certStore;
-BearSSL::WiFiClientSecure client;
 
 String urlencode(String str)
 {
@@ -148,6 +146,9 @@ void downloadAndDrawTodo()
 
   const char *apiRoot = apiUrl.getValue();
   const char *apikey = apiKey.getValue();
+
+  BearSSL::CertStore certStore;
+  BearSSL::WiFiClientSecure client;
 
   LittleFS.begin();
   int numCerts = certStore.initCertStore(LittleFS, PSTR("/certs.idx"), PSTR("/certs.ar"));
