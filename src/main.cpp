@@ -10,6 +10,7 @@
 #include "button.h"
 #include "store.h"
 #include "UpdateFS.h"
+#include "UpdateFireware.h"
 
 OneButton button;
 
@@ -73,6 +74,8 @@ void setup()
 
     delay(1000);
 
+    updateFireWare();
+    
     updateFS();
     saveSetting();
 

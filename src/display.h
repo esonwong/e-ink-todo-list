@@ -112,4 +112,9 @@ void showTextOnScreenCenter(const char *text, uint8_t textSize = 2)
   } while (display.nextPage());
 }
 
+void showTextOnScreenCenter(String text, uint8_t textSize = 2)
+{
+  showTextOnScreenCenter(text.c_str(), textSize);
+}
+
 #endif

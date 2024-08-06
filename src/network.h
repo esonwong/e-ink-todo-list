@@ -7,6 +7,7 @@
 #include "store.h"
 #include "clock.h"
 #include "UpdateFS.h"
+#include "UpdateFireware.h"
 
 WiFiManager wifiManager;
 
@@ -59,6 +60,8 @@ void saveConfigCallback()
   setClock();
 
   delay(1000);
+
+  updateFireWare();
 
   updateFS();
   saveSetting();
@@ -124,6 +127,9 @@ bool initWifiWithManager()
   wifiManager.setMenu(menu);
 
   wifiManager.setTitle("E-ink Todo List");
+
+  String text = );
+  showTextOnScreenCenter("Connecting to WiFi " + String(wifiManager.getWiFiSSID()));
 
   if (wifiManager.autoConnect(AP_SSID.c_str(), AP_PASSWORD.c_str()))
   {

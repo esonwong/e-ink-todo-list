@@ -1,40 +1,38 @@
-#ifndef UPDATE_FS_H
-#define UPDATE_FS_H
+#ifndef UPDATE_FIRMWARE_H
+#define UPDATE_FIRMWARE_H
 
 #include <ESP8266httpUpdate.h>
 #include <ESP8266HTTPClient.h>
 #include <CertStoreBearSSL.h>
 #include <LittleFS.h>
 
-BearSSL::WiFiClientSecure updateFSClient;
+BearSSL::WiFiClientSecure updateFireWareClient;
 
-// current progress
-int updateFSProgress = 0;
+int updateFireWareProgress = 0;
 
-void onStartUpdateFS()
+void onStartUpdateFireWare()
 {
-  Serial.println("Update FS Start");
-  showTextOnScreenCenter("Updating System Data");
+  Serial.println("Update Fireware Start");
+  showTextOnScreenCenter("Updating Fireware");
 };
 
-void onProgressUpdateFS(int current, int total)
+void onProgressUpdateFireWare(int current, int total)
 {
-  // Serial.printf("Progress: %d%%\n", (current * 100) / total);
   int newProgress = (current * 100) / total;
-  if (newProgress != updateFSProgress)
+  if (newProgress != updateFireWareProgress)
   {
-    updateFSProgress = newProgress;
-    Serial.printf("Update FS Progress: %d%%\n", updateFSProgress);
+    updateFireWareProgress = newProgress;
+    Serial.printf("Update Fireware Progress: %d%%\n", updateFireWareProgress);
   }
 };
 
-void onEndUpdateFS()
+void onEndUpdateFireWare()
 {
-  Serial.println("Update FS End");
-  showTextOnScreenCenter("Updated System Data");
+  Serial.println("Update Fireware End");
+  showTextOnScreenCenter("Updated Fireware");
 };
 
-void updateFS(const char *url = FS_UPDATE_URL)
+void updateFireWare(const char *url = FIREWARE_UPDATE_URL)
 {
 
   Serial.println("Update file system!");
@@ -46,10 +44,10 @@ void updateFS(const char *url = FS_UPDATE_URL)
   Serial.printf("Number of CA certs read: %d\n", numCerts);
   if (numCerts == 0)
   {
-    updateFSClient.setInsecure();
+    updateFireWareClient.setInsecure();
   }
 
-  updateFSClient.setCertStore(&certStore);
+  updateFireWareClient.setCertStore(&certStore);
   String currentVersion;
   File currentVersionFile = LittleFS.open("/currentFSVersion", "r");
   if (!currentVersionFile)
@@ -64,11 +62,11 @@ void updateFS(const char *url = FS_UPDATE_URL)
 
   Serial.print("Current FS Version: ");
   Serial.println(currentVersion);
-  ESPhttpUpdate.onStart(onStartUpdateFS);
-  ESPhttpUpdate.onProgress(onProgressUpdateFS);
-  ESPhttpUpdate.onEnd(onEndUpdateFS);
-  t_httpUpdate_return ret = ESPhttpUpdate.updateFS(updateFSClient, url, currentVersion);
-  updateFSClient.stop();
+  ESPhttpUpdate.onStart(onStartUpdateFireWare);
+  ESPhttpUpdate.onProgress(onProgressUpdateFireWare);
+  ESPhttpUpdate.onEnd(onEndUpdateFireWare);
+  t_httpUpdate_return ret = ESPhttpUpdate.update(updateFireWareClient, url, currentVersion);
+  updateFireWareClient.stop();
   LittleFS.end();
 
   switch (ret)
