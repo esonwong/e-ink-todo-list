@@ -97,11 +97,9 @@ void savePersistentValue(String key, T value)
     return;
   }
 
-  // 打开文件，如果文件不存在则创建新文件
   File file = LittleFS.open("/persistentValue.json", "r+");
   if (!file)
   {
-    // 如果文件不存在，则以写模式创建新文件
     file = LittleFS.open("/persistentValue.json", "w+");
     if (!file)
     {
@@ -122,16 +120,12 @@ void savePersistentValue(String key, T value)
     }
   }
 
-  // 更新 JSON 对象中的键值对
   doc[key] = value;
 
-  // 将文件指针移到文件开头
   file.seek(0);
 
-  // 清空文件内容
   file.truncate(0);
 
-  // 将更新后的 JSON 数据写回文件
   if (serializeJson(doc, file) == 0)
   {
     Serial.println("Failed to write to file");
