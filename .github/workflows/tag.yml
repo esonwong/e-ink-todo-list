@@ -32,8 +32,8 @@ jobs:
         run: pio run  -e production -t buildfs 
       - name: Calculate MD5 Checksums
         run: |
-          md5sum .pio/build/production/firmware.bin > firmware.md5
-          md5sum .pio/build/production/littlefs.bin > littlefs.md5
+          md5sum .pio/build/production/firmware.bin > md5sum
+          md5sum .pio/build/production/littlefs.bin >> md5sum
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -45,5 +45,4 @@ jobs:
               --repo="$GITHUB_REPOSITORY" \
               --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
               --generate-notes \
-              '.pio/build/production/firmware.bin' '.pio/build/production/littlefs.bin' \
-              --notes "Firmware MD5: $firmware_md5\nLittleFS MD5: $littlefs_md5"
+              '.pio/build/production/firmware.bin' '.pio/build/production/littlefs.bin' 'md5sum' \
