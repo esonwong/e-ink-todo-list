@@ -1,6 +1,6 @@
 # 墨水屏 Todo List
 
-[![PlatformIO CI](https://github.com/esonwong/e-ink-todo-list/actions/workflows/main.yml/badge.svg)](https://github.com/esonwong/e-ink-todo-list/actions/workflows/main.yml)
+[![PlatformIO CI](https://github.com/esonwong/e-ink-todo-list/actions/workflows/tag.yml/badge.svg)](https://github.com/esonwong/e-ink-todo-list/actions/workflows/tag.yml)
 
 使用[einktodo.com](https://einktodo.com)提供的 API，将待办事项显示在墨水屏上。
 

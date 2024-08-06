@@ -1,6 +1,6 @@
 # E-Ink Todo List
 
-[![PlatformIO CI](https://github.com/esonwong/e-ink-todo-list/actions/workflows/main.yml/badge.svg)](https://github.com/esonwong/e-ink-todo-list/actions/workflows/main.yml)
+[![PlatformIO CI](https://github.com/esonwong/e-ink-todo-list/actions/workflows/tag.yml/badge.svg)](https://github.com/esonwong/e-ink-todo-list/actions/workflows/tag.yml)
 
 Use the API provided by [einktodo.com](https://einktodo.com) to display todo items on an e-ink screen.
 
