@@ -12,7 +12,6 @@ struct Setting
 struct RunningValue
 {
   char todoLastModified[30] = "";
-  // last check time
   time_t lastCheck = 0;
 };
 
@@ -92,44 +91,79 @@ void removeSetting()
 template <typename T>
 void savePersistentValue(String key, T value)
 {
-  Serial.println("Save persistent value");
   if (!LittleFS.begin())
   {
     Serial.println("An Error has occurred while mounting LittleFS");
     return;
   }
-  File file = LittleFS.open("/persistentValue.json", "w");
+
+  // 打开文件，如果文件不存在则创建新文件
+  File file = LittleFS.open("/persistentValue.json", "r+");
   if (!file)
   {
-    Serial.println("Failed to open file for writing");
-    return;
+    // 如果文件不存在，则以写模式创建新文件
+    file = LittleFS.open("/persistentValue.json", "w+");
+    if (!file)
+    {
+      Serial.println("Failed to open file for writing");
+      LittleFS.end();
+      return;
+    }
   }
 
-  JsonDocument persistentValueJson;
-  persistentValueJson[key] = value;
+  JsonDocument doc;
 
-  file = LittleFS.open("/persistentValue.json", "w");
-  if (!file)
+  if (file.size() > 0)
   {
-    Serial.println("Failed to open file for writing");
-    return;
+    DeserializationError error = deserializeJson(doc, file);
+    if (error)
+    {
+      Serial.println("Failed to read file, using empty JSON object");
+    }
   }
 
-  if (serializeJson(persistentValueJson, file) == 0)
+  // 更新 JSON 对象中的键值对
+  doc[key] = value;
+
+  // 将文件指针移到文件开头
+  file.seek(0);
+
+  // 清空文件内容
+  file.truncate(0);
+
+  // 将更新后的 JSON 数据写回文件
+  if (serializeJson(doc, file) == 0)
   {
     Serial.println("Failed to write to file");
   }
 
+  // 关闭文件
   file.close();
+
+  Serial.print("Save persistent value ");
+  Serial.print(key);
+  Serial.print(" = ");
+  Serial.println(value);
   LittleFS.end();
-  Serial.println("Save persistent value done");
-  
+
+#ifdef DEBUG_PERSISTENT_STORAGE
+  // print file content
+  LittleFS.begin();
+  File readFile = LittleFS.open("/persistentValue.json", "r");
+  Serial.println("File content:");
+  while (readFile.available())
+  {
+    Serial.write(readFile.read());
+  }
+  Serial.println();
+  readFile.close();
+  LittleFS.end();
+#endif
 }
 
 template <typename T>
 T getPersistentValue(String key, T defaultValue)
 {
-  Serial.println("Get persistent value");
   T value = defaultValue;
   if (!LittleFS.begin())
   {
@@ -169,12 +203,26 @@ void cleanRunningValue()
   runningValue = RunningValue();
 }
 
+void formatLittleFS()
+{
+  if (!LittleFS.begin())
+  {
+    Serial.println("An Error has occurred while mounting LittleFS");
+    Serial.println("Format LittleFS");
+    LittleFS.format();
+    Serial.println("Format LittleFS done");
+  }
+  LittleFS.end();
+}
+
 void initStore()
 {
+
+  formatLittleFS();
+
   Serial.println("Init store");
   setting = loadSetting();
   runningValue = loadRunningValue();
-
 
 #ifdef API_KEY
   // For debugging

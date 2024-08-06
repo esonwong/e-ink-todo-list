@@ -7,7 +7,6 @@
 #include <LittleFS.h>
 #include "store.h"
 
-
 BearSSL::WiFiClientSecure updateFireWareClient;
 
 int updateFireWareProgress = 0;
@@ -32,7 +31,6 @@ void onEndUpdateFireWare()
 {
   Serial.println("Update Fireware End");
   showTextOnScreenCenter("Updated Fireware Success");
-  savePersistentValue("lastFirewareCheck", time(nullptr));
 };
 
 void updateFireWare(const char *url = FIREWARE_UPDATE_URL)
@@ -40,19 +38,19 @@ void updateFireWare(const char *url = FIREWARE_UPDATE_URL)
 
   Serial.println("Update Fireware Start");
 
-
   int lastFirewareCheck = getPersistentValue("lastFirewareCheck", 0);
   int now = time(nullptr);
   int diff = now - lastFirewareCheck;
 
-  int checkInterval = 10 * 24 * 60 * 60; // 1 days
+  int checkInterval = 10 * 24 * 60 * 60;
 
   if (diff < checkInterval)
   {
-    Serial.printf("Skip update fireware, last check %d hours ago\n", diff / 60 / 60);
+    Serial.printf("Skip update fireware, will check again in %d hours\n", (checkInterval - diff) / 3600);
     return;
   }
 
+  savePersistentValue("lastFirewareCheck", time(nullptr));
 
   BearSSL::CertStore certStore;
 

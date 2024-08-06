@@ -28,12 +28,9 @@ jobs:
         run: pip install --upgrade platformio
       - name: Build PlatformIO Project
         run: pio run -e production
-      - name: Build PlatformIO Project FS
-        run: pio run  -e production -t buildfs 
       - name: Calculate MD5 Checksums
         run: |
           md5sum .pio/build/production/firmware.bin > md5sum
-          md5sum .pio/build/production/littlefs.bin >> md5sum
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -43,4 +40,4 @@ jobs:
               --repo="$GITHUB_REPOSITORY" \
               --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
               --generate-notes \
-              '.pio/build/production/firmware.bin' '.pio/build/production/littlefs.bin' 'md5sum'
+              '.pio/build/production/firmware.bin' 'md5sum'

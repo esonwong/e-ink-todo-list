@@ -255,15 +255,15 @@ void downloadAndDrawTodo()
   }
 
   Serial.println("Start reading response body");
-  int bitsDown = 0;
   int bitsTotal = w * h;
-  int bytesRead = 0;
-
-  uint8_t buf[128];
-  while (https.connected() && (bytesRead = stream->readBytes(buf, std::min(128, bitsTotal - bitsDown))) > 0)
+  uint8_t buff[128];
+  size_t buffSize = sizeof(buff);
+  size_t readSize;
+  size_t readSizeTotal = 0;
+  while (https.connected() && (readSize = stream->readBytes(buff, std::min(buffSize, bitsTotal - readSizeTotal))) > 0)
   {
-    file.write(buf, bytesRead);
-    bitsDown += bytesRead;
+    file.write(buff, readSize);
+    readSizeTotal += readSize;
   }
   file.close();
   LittleFS.end();

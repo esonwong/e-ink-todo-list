@@ -50,16 +50,26 @@ void setup()
   while (dir.next())
   {
     Serial.print(dir.fileName());
-    Serial.print(" - ");
+    Serial.print("   - ");
     File f = dir.openFile("r");
     Serial.println(f.size());
   }
   Serial.println("End list files");
+
+  delay(3000);
+
+#ifdef DEBUG_PERSISTENT_STORAGE
+  savePersistentValue("text", "Hello World");
+  savePersistentValue("number", 123);
+  savePersistentValue("float", 123.456);
+  savePersistentValue("bool", true);
+  savePersistentValue("bool", false);
+#endif
 #endif
 
   Serial.print("API URL: ");
   Serial.println(setting.apiUrl);
- 
+
   showLaunchScreen();
 
   initStore();
@@ -85,8 +95,7 @@ void loop()
   button.tick();
   wifiManager.process();
 
-
-  if(wifiManager.getConfigPortalActive() && WiFi.status() == WL_CONNECTED)
+  if (wifiManager.getConfigPortalActive() && WiFi.status() == WL_CONNECTED)
   {
     return;
   }

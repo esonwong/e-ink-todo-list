@@ -71,7 +71,7 @@ void initDisplay()
   display.fillScreen(GxEPD_WHITE);
   display.setTextColor(GxEPD_BLACK);
 
-  Serial.println("初始化屏幕完成");
+  Serial.println("Display initialized");
 }
 
 void showLaunchScreen()
