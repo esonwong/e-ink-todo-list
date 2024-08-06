@@ -128,7 +128,6 @@ bool initWifiWithManager()
 
   wifiManager.setTitle("E-ink Todo List");
 
-  String text = );
   showTextOnScreenCenter("Connecting to WiFi " + String(wifiManager.getWiFiSSID()));
 
   if (wifiManager.autoConnect(AP_SSID.c_str(), AP_PASSWORD.c_str()))
