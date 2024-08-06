@@ -31,6 +31,7 @@ void onEndUpdateFireWare()
 {
   Serial.println("Update Fireware End");
   showTextOnScreenCenter("Updated Fireware Success");
+  delay(2000);
 };
 
 void updateFireWare(const char *url = FIREWARE_UPDATE_URL)
@@ -42,11 +43,17 @@ void updateFireWare(const char *url = FIREWARE_UPDATE_URL)
   int now = time(nullptr);
   int diff = now - lastFirewareCheck;
 
+#ifdef DEBUG_UPDATE_FIREWARE
+  int checkInterval = 60;
+#else
   int checkInterval = 10 * 24 * 60 * 60;
+#endif
 
   if (diff < checkInterval)
   {
+#ifdef DEBUG_UPDATE_FIREWARE
     Serial.printf("Skip update fireware, will check again in %d hours\n", (checkInterval - diff) / 3600);
+#endif
     return;
   }
 
