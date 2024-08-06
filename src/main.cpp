@@ -87,7 +87,6 @@ void setup()
   if (initWifiWithManager())
   {
     setClock();
-
     showTextOnScreenCenter("Network Connected");
   }
 }

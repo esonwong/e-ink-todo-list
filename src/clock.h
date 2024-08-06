@@ -26,6 +26,7 @@ void setClock()
   gmtime_r(&nowSecs, &timeinfo);
   Serial.print("Current time: ");
   Serial.println(asctime(&timeinfo));
+  delay(100);
 }
 
 void drawCurrentTime()

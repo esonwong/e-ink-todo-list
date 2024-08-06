@@ -59,8 +59,6 @@ void saveConfigCallback()
 
   setClock();
 
-  delay(1000);
-
   updateFiles();
   updateFireWare();
 }
