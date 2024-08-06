@@ -5,7 +5,6 @@
 #include <ESP8266HTTPClient.h>
 #include <CertStoreBearSSL.h>
 #include <LittleFS.h>
-#include <algorithm> // Add this line
 #include "network.h"
 #include "store.h"
 
