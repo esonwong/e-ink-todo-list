@@ -5,6 +5,8 @@
 #include <ESP8266HTTPClient.h>
 #include <CertStoreBearSSL.h>
 #include <LittleFS.h>
+#include "store.h"
+
 
 BearSSL::WiFiClientSecure updateFireWareClient;
 
@@ -29,13 +31,28 @@ void onProgressUpdateFireWare(int current, int total)
 void onEndUpdateFireWare()
 {
   Serial.println("Update Fireware End");
-  showTextOnScreenCenter("Updated Fireware");
+  showTextOnScreenCenter("Updated Fireware Success");
+  savePersistentValue("lastFirewareCheck", time(nullptr));
 };
 
 void updateFireWare(const char *url = FIREWARE_UPDATE_URL)
 {
 
-  Serial.println("Update file system!");
+  Serial.println("Update Fireware Start");
+
+
+  int lastFirewareCheck = getPersistentValue("lastFirewareCheck", 0);
+  int now = time(nullptr);
+  int diff = now - lastFirewareCheck;
+
+  int checkInterval = 10 * 24 * 60 * 60; // 1 days
+
+  if (diff < checkInterval)
+  {
+    Serial.printf("Skip update fireware, last check %d hours ago\n", diff / 60 / 60);
+    return;
+  }
+
 
   BearSSL::CertStore certStore;
 
@@ -48,53 +65,26 @@ void updateFireWare(const char *url = FIREWARE_UPDATE_URL)
   }
 
   updateFireWareClient.setCertStore(&certStore);
-  String currentVersion;
-  File currentVersionFile = LittleFS.open("/currentFSVersion", "r");
-  if (!currentVersionFile)
-  {
-    Serial.println("Can't opening currentVersion file");
-    currentVersion = "have no version";
-  }
-  else
-  {
-    currentVersion = currentVersionFile.readString();
-  }
-
-  Serial.print("Current FS Version: ");
-  Serial.println(currentVersion);
   ESPhttpUpdate.onStart(onStartUpdateFireWare);
   ESPhttpUpdate.onProgress(onProgressUpdateFireWare);
   ESPhttpUpdate.onEnd(onEndUpdateFireWare);
-  t_httpUpdate_return ret = ESPhttpUpdate.update(updateFireWareClient, url, currentVersion);
+  t_httpUpdate_return ret = ESPhttpUpdate.update(updateFireWareClient, url);
   updateFireWareClient.stop();
   LittleFS.end();
 
   switch (ret)
   {
   case HTTP_UPDATE_FAILED:
-    Serial.printf("UPDATE FS FAILD Error (%d): %s\n", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
+    Serial.printf("UPDATE Firmware FAILD Error (%d): %s\n", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
     break;
   case HTTP_UPDATE_NO_UPDATES:
-    Serial.println("UPDATE FS NO_UPDATES");
+    Serial.println("UPDATE Firmware NO_UPDATES");
     break;
   case HTTP_UPDATE_OK:
-    Serial.println("UPDATE FS SUCCESS");
-    LittleFS.begin();
-    File currentVersionFile = LittleFS.open("/currentFSVersion", "r");
-    if (!currentVersionFile)
-    {
-      Serial.println("Can't opening currentVersion file");
-    }
-    else
-    {
-      Serial.print("Current FS Version: ");
-      currentVersion = currentVersionFile.readString();
-      Serial.println(currentVersion);
-    }
-    LittleFS.end();
+    Serial.println("UPDATE Firmware SUCCESS");
     break;
   }
-  Serial.println("Update file system done!");
+  Serial.println("Update Fireware End");
 }
 
 #endif

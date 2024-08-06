@@ -89,6 +89,76 @@ void removeSetting()
   LittleFS.end();
 }
 
+template <typename T>
+void savePersistentValue(String key, T value)
+{
+  Serial.println("Save persistent value");
+  if (!LittleFS.begin())
+  {
+    Serial.println("An Error has occurred while mounting LittleFS");
+    return;
+  }
+  File file = LittleFS.open("/persistentValue.json", "w");
+  if (!file)
+  {
+    Serial.println("Failed to open file for writing");
+    return;
+  }
+
+  JsonDocument persistentValueJson;
+  persistentValueJson[key] = value;
+
+  file = LittleFS.open("/persistentValue.json", "w");
+  if (!file)
+  {
+    Serial.println("Failed to open file for writing");
+    return;
+  }
+
+  if (serializeJson(persistentValueJson, file) == 0)
+  {
+    Serial.println("Failed to write to file");
+  }
+
+  file.close();
+  LittleFS.end();
+  Serial.println("Save persistent value done");
+  
+}
+
+template <typename T>
+T getPersistentValue(String key, T defaultValue)
+{
+  Serial.println("Get persistent value");
+  T value = defaultValue;
+  if (!LittleFS.begin())
+  {
+    Serial.println("An Error has occurred while mounting LittleFS");
+    return value;
+  }
+  File file = LittleFS.open("/persistentValue.json", "r");
+  if (!file)
+  {
+    Serial.println("Failed to open file for reading");
+    return value;
+  }
+
+  JsonDocument persistentValueJson;
+  DeserializationError error = deserializeJson(persistentValueJson, file);
+  if (error)
+  {
+    Serial.println("Failed to read file");
+    file.close();
+    return value;
+  }
+
+  value = persistentValueJson[key] | defaultValue;
+
+  file.close();
+  LittleFS.end();
+  return value;
+}
+
 RunningValue loadRunningValue()
 {
   return RunningValue();
@@ -103,11 +173,13 @@ void initStore()
 {
   Serial.println("Init store");
   setting = loadSetting();
+  runningValue = loadRunningValue();
+
+
 #ifdef API_KEY
   // For debugging
   strcpy(setting.apiKey, API_KEY);
 #endif
-  runningValue = loadRunningValue();
 }
 
 #endif // STORE_H

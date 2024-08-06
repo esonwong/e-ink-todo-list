@@ -6,7 +6,7 @@
 #include "display.h"
 #include "store.h"
 #include "clock.h"
-#include "UpdateFS.h"
+#include "UpdateFiles.h"
 #include "UpdateFireware.h"
 
 WiFiManager wifiManager;
@@ -61,10 +61,8 @@ void saveConfigCallback()
 
   delay(1000);
 
+  updateFiles();
   updateFireWare();
-
-  updateFS();
-  saveSetting();
 }
 
 void setSaveParamsCallback()

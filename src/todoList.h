@@ -180,7 +180,8 @@ void downloadAndDrawTodo()
 #endif
 
   const char *headerKeys[] = {"Content-Picture-Width", "Content-Picture-Height", "API-Version", "Last-Modified"};
-  https.collectHeaders(headerKeys, 4);
+  int headerKeysSize = sizeof(headerKeys) / sizeof(char *);
+  https.collectHeaders(headerKeys, headerKeysSize);
 
   int httpCode = https.GET();
   int contentLength = https.getSize();

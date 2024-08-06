@@ -9,7 +9,7 @@
 #include "clock.h"
 #include "button.h"
 #include "store.h"
-#include "UpdateFS.h"
+#include "UpdateFiles.h"
 #include "UpdateFireware.h"
 
 OneButton button;
@@ -25,6 +25,11 @@ void setup()
 #ifdef DEBUG
   delay(3000);
 
+#ifdef GIT_VERSION
+  Serial.print("Version: ");
+  Serial.println(GIT_VERSION);
+#endif
+
   Serial.print("Sketch MD5: ");
   Serial.println(ESP.getSketchMD5());
 
@@ -33,6 +38,12 @@ void setup()
     Serial.println("An Error has occurred while mounting LittleFS");
     return;
   }
+
+  DeviceID = String(ESP.getChipId());
+
+  // Print chip information
+  Serial.print("Device ID: ");
+  Serial.println(DeviceID);
 
   Serial.println("List files");
   Dir dir = LittleFS.openDir("/");
@@ -43,21 +54,12 @@ void setup()
     File f = dir.openFile("r");
     Serial.println(f.size());
   }
-#endif
-
-#ifdef GIT_VERSION
-  Serial.print("Version: ");
-  Serial.println(GIT_VERSION);
+  Serial.println("End list files");
 #endif
 
   Serial.print("API URL: ");
   Serial.println(setting.apiUrl);
-
-  DeviceID = String(ESP.getChipId());
-
-  // Print chip information
-  Serial.print("Device ID: ");
-  Serial.println(DeviceID);
+ 
   showLaunchScreen();
 
   initStore();
@@ -75,18 +77,6 @@ void setup()
   if (initWifiWithManager())
   {
     setClock();
-
-    delay(1000);
-
-    updateFireWare();
-    
-    updateFS();
-    saveSetting();
-
-    updating = true;
-    Serial.println("Update todo");
-    downloadAndDrawTodo();
-    updating = false;
   }
 }
 
@@ -95,9 +85,17 @@ void loop()
   button.tick();
   wifiManager.process();
 
+
+  if(wifiManager.getConfigPortalActive() && WiFi.status() == WL_CONNECTED)
+  {
+    return;
+  }
+  updateFiles();
+  updateFireWare();
+
   // 每 1 分钟检查一次是否需要更新 todo
   time_t now = time(nullptr);
-  if (now - runningValue.lastCheck > 60 && !updating && WiFi.status() == WL_CONNECTED)
+  if (now - runningValue.lastCheck > 60 && !updating)
   {
     updating = true;
     downloadAndDrawTodo();
