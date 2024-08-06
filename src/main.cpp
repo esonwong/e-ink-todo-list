@@ -24,6 +24,10 @@ void setup()
 
 #ifdef DEBUG
   delay(3000);
+
+  Serial.print("Sketch MD5: ");
+  Serial.println(ESP.getSketchMD5());
+
   if (!LittleFS.begin())
   {
     Serial.println("An Error has occurred while mounting LittleFS");
