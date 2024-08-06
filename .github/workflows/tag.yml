@@ -43,4 +43,4 @@ jobs:
               --repo="$GITHUB_REPOSITORY" \
               --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
               --generate-notes \
-              '.pio/build/production/firmware.bin' '.pio/build/production/littlefs.bin' 'md5sum' \
+              '.pio/build/production/firmware.bin' '.pio/build/production/littlefs.bin' 'md5sum'
