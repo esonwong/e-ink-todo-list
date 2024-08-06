@@ -76,6 +76,7 @@ void initDisplay()
 
 void showLaunchScreen()
 {
+  initDisplay();
   do
   {
     display.fillScreen(GxEPD_WHITE);
@@ -92,6 +93,22 @@ void showLaunchScreen()
     display.getTextBounds(author, 0, 0, &x, &y, &w2, &h2);
     display.setCursor((display.width() - w2) / 2, display.height() / 2 + h1 / 2);
     display.println(author);
+  } while (display.nextPage());
+}
+
+void showTextOnScreenCenter(const char *text, uint8_t textSize = 2)
+{
+  initDisplay();
+  display.fillScreen(GxEPD_WHITE);
+  display.setCursor(0, 0);
+  int16_t x, y;
+  uint16_t w, h;
+  do
+  {
+    display.setTextSize(textSize);
+    display.getTextBounds(text, 0, 0, &x, &y, &w, &h);
+    display.setCursor((display.width() - w) / 2, (display.height() - h) / 2);
+    display.println(text);
   } while (display.nextPage());
 }
 

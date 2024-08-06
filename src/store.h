@@ -19,7 +19,7 @@ struct RunningValue
 Setting setting;
 RunningValue runningValue;
 
-void saveSetting(Setting setting)
+void saveSetting(Setting setting = setting)
 {
   Serial.println("Save setting");
   if (!LittleFS.begin())
@@ -41,6 +41,7 @@ void saveSetting(Setting setting)
   serializeJson(settingJson, file);
   file.close();
   LittleFS.end();
+  Serial.println("Save setting done");
 }
 
 Setting loadSetting()
@@ -85,30 +86,6 @@ void removeSetting()
     return;
   }
   LittleFS.remove("/setting.json");
-  LittleFS.end();
-}
-
-void saveRunningValue(RunningValue runningValue)
-{
-  Serial.println("Save running value");
-  if (!LittleFS.begin())
-  {
-    Serial.println("An Error has occurred while mounting LittleFS");
-    return;
-  }
-  File file = LittleFS.open("/runningValue.json", "w");
-  if (!file)
-  {
-    Serial.println("Failed to open file for writing");
-    return;
-  }
-
-  JsonDocument runningValueJson;
-  runningValueJson["todoLastModified"] = runningValue.todoLastModified;
-  runningValueJson["lastCheck"] = runningValue.lastCheck;
-
-  serializeJson(runningValueJson, file);
-  file.close();
   LittleFS.end();
 }
 

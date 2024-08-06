@@ -57,14 +57,7 @@ String urlencode(String str)
 
 void showNoContent()
 {
-  initDisplay();
-  do
-  {
-    display.fillScreen(GxEPD_WHITE);
-    display.setTextColor(GxEPD_BLACK);
-    display.setCursor(0, 0);
-    display.print("No Content");
-  } while (display.nextPage());
+  showTextOnScreenCenter("No Content");
 }
 
 void show401()
@@ -136,7 +129,6 @@ void downloadAndDrawTodo()
 {
 
   runningValue.lastCheck = time(nullptr);
-  saveRunningValue(runningValue);
 
   if (wifiManager.getConfigPortalActive())
   {
@@ -150,17 +142,23 @@ void downloadAndDrawTodo()
   BearSSL::CertStore certStore;
   BearSSL::WiFiClientSecure client;
 
-  LittleFS.begin();
+  if (!LittleFS.begin())
+  {
+    Serial.println("An Error has occurred while mounting LittleFS");
+    return;
+  }
   int numCerts = certStore.initCertStore(LittleFS, PSTR("/certs.idx"), PSTR("/certs.ar"));
   Serial.printf("Number of CA certs read: %d\n", numCerts);
   if (numCerts == 0)
   {
-    Serial.println("No certs found. Need to run Upload Filesystem Image");
+    Serial.println("No certs found. Need to restart to get certs. It will be more secure for your data.");
     LittleFS.end();
-    return; // Can't connect to anything w/o certs!
+    client.setInsecure();
   }
-
-  client.setCertStore(&certStore);
+  else
+  {
+    client.setCertStore(&certStore);
+  }
 
   String savedTodoLastModified = runningValue.todoLastModified;
 
@@ -273,7 +271,6 @@ void downloadAndDrawTodo()
   https.end();
 
   strcpy(runningValue.todoLastModified, lastModified.c_str());
-  saveRunningValue(runningValue);
 
   displayToScreen(cachedFileName, w, h, GxEPD_BLACK);
 }

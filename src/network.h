@@ -6,11 +6,16 @@
 #include "display.h"
 #include "store.h"
 #include "clock.h"
+#include "UpdateFS.h"
 
 WiFiManager wifiManager;
 
 WiFiManagerParameter apiKey("apiKey", "API Key", "", 41);
 WiFiManagerParameter apiUrl("apiUrl", "API URL", "", 200);
+
+void onConnectNetwork()
+{
+}
 
 void configModeCallback(WiFiManager *myWiFiManager)
 {
@@ -52,6 +57,11 @@ void saveConfigCallback()
   Serial.println(wifiManager.getWiFiPass());
 
   setClock();
+
+  delay(1000);
+
+  updateFS();
+  saveSetting();
 }
 
 void setSaveParamsCallback()

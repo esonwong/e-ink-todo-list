@@ -6,42 +6,88 @@
 #include <CertStoreBearSSL.h>
 #include <LittleFS.h>
 
+BearSSL::WiFiClientSecure updateFSClient;
+
+void onStartUpdateFS()
+{
+  Serial.println("Update FS Start");
+  showTextOnScreenCenter("Updating System Data");
+};
+
+void onProgressUpdateFS(int current, int total)
+{
+  Serial.printf("Progress: %d%%\n", (current * 100) / total);
+};
+
+void onEndUpdateFS()
+{
+  Serial.println("Update FS End");
+  showTextOnScreenCenter("Updated System Data");
+};
+
 void updateFS(const char *url = FS_UPDATE_URL)
 {
 
   Serial.println("Update file system!");
 
   BearSSL::CertStore certStore;
-  BearSSL::WiFiClientSecure client;
 
   LittleFS.begin();
   int numCerts = certStore.initCertStore(LittleFS, PSTR("/certs.idx"), PSTR("/certs.ar"));
   Serial.printf("Number of CA certs read: %d\n", numCerts);
   if (numCerts == 0)
   {
-    Serial.println("No certs found. Need to run Upload Filesystem Image");
-    LittleFS.end();
-    return; // Can't connect to anything w/o certs!
+    updateFSClient.setInsecure();
   }
 
-  client.setCertStore(&certStore);
+  updateFSClient.setCertStore(&certStore);
+  String currentVersion;
+  File currentVersionFile = LittleFS.open("/currentFSVersion", "r");
+  if (!currentVersionFile)
+  {
+    Serial.println("Can't opening currentVersion file");
+    currentVersion = "have no version";
+  }
+  else
+  {
+    currentVersion = currentVersionFile.readString();
+  }
 
-  t_httpUpdate_return ret = ESPhttpUpdate.updateFS(client, url);
-
+  Serial.print("Current FS Version: ");
+  Serial.println(currentVersion);
+  ESPhttpUpdate.onStart(onStartUpdateFS);
+  ESPhttpUpdate.onProgress(onProgressUpdateFS);
+  ESPhttpUpdate.onEnd(onEndUpdateFS);
+  t_httpUpdate_return ret = ESPhttpUpdate.updateFS(updateFSClient, url, currentVersion);
+  updateFSClient.stop();
   LittleFS.end();
 
   switch (ret)
   {
   case HTTP_UPDATE_FAILED:
-    Serial.printf("HTTP_UPDATE_FAILD Error (%d): %s\n", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
+    Serial.printf("UPDATE FS FAILD Error (%d): %s\n", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
     break;
   case HTTP_UPDATE_NO_UPDATES:
-    Serial.println("HTTP_UPDATE_NO_UPDATES");
+    Serial.println("UPDATE FS NO_UPDATES");
     break;
   case HTTP_UPDATE_OK:
-    Serial.println("HTTP_UPDATE_OK");
+    Serial.println("UPDATE FS SUCCESS");
+    LittleFS.begin();
+    File currentVersionFile = LittleFS.open("/currentFSVersion", "r");
+    if (!currentVersionFile)
+    {
+      Serial.println("Can't opening currentVersion file");
+    }
+    else
+    {
+      Serial.print("Current FS Version: ");
+      currentVersion = currentVersionFile.readString();
+      Serial.println(currentVersion);
+    }
+    LittleFS.end();
     break;
   }
+  Serial.println("Update file system done!");
 }
 
 #endif

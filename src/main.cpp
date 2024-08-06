@@ -53,7 +53,6 @@ void setup()
   // Print chip information
   Serial.print("Device ID: ");
   Serial.println(DeviceID);
-  initDisplay();
   showLaunchScreen();
 
   initStore();
@@ -70,14 +69,15 @@ void setup()
 
   if (initWifiWithManager())
   {
-
     setClock();
 
     delay(1000);
 
     updateFS();
+    saveSetting();
 
     updating = true;
+    Serial.println("Update todo");
     downloadAndDrawTodo();
     updating = false;
   }
