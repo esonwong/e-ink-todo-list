@@ -85,6 +85,7 @@ void showLaunchScreen()
     uint16_t w1, w2, h1, h2;
     const char *name = "E-Ink Todo List";
     const char *author = "by @Eson";
+
     display.setTextSize(3);
     display.getTextBounds(name, 0, 0, &x, &y, &w1, &h1);
     display.setCursor((display.width() - w1) / 2, display.height() / 2 - h1);
@@ -93,6 +94,14 @@ void showLaunchScreen()
     display.getTextBounds(author, 0, 0, &x, &y, &w2, &h2);
     display.setCursor((display.width() - w2) / 2, display.height() / 2 + h1 / 2);
     display.println(author);
+#ifdef GIT_VERSION
+    uint16_t w3, h3;
+    display.setTextSize(1);
+    display.getTextBounds(GIT_VERSION, 0, 0, &x, &y, &w3, &h3);
+    display.setCursor((display.width() - w3) / 2, display.height() - h3 - 10);
+    display.println(GIT_VERSION);
+#endif
+
   } while (display.nextPage());
 }
 

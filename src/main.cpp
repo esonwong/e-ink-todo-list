@@ -21,9 +21,9 @@ void setup()
   // Serial.setDebugOutput(true);
   Serial.println();
   Serial.println("Steup Start");
+  delay(3000);
 
 #ifdef DEBUG
-  delay(3000);
 
 #ifdef GIT_VERSION
   Serial.print("Version: ");
@@ -71,6 +71,7 @@ void setup()
   Serial.println(setting.apiUrl);
 
   showLaunchScreen();
+  delay(5000);
 
   initStore();
   button = initButton();
