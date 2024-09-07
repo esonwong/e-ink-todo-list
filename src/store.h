@@ -29,7 +29,7 @@ void saveSetting(Setting setting = setting)
   File file = LittleFS.open("/setting.json", "w");
   if (!file)
   {
-    Serial.println("Failed to open file for writing");
+    Serial.println("Can not open setting.json for writing");
     return;
   }
 
@@ -55,7 +55,7 @@ Setting loadSetting()
   File file = LittleFS.open("/setting.json", "r");
   if (!file)
   {
-    Serial.println("Failed to open file for reading");
+    Serial.println("Can not read setting.json");
     return setting;
   }
 
@@ -63,7 +63,7 @@ Setting loadSetting()
   DeserializationError error = deserializeJson(settingJson, file);
   if (error)
   {
-    Serial.println("Failed to read file");
+    Serial.println("Can not parse setting.json");
     file.close();
     return setting;
   }
@@ -103,7 +103,7 @@ void savePersistentValue(String key, T value)
     file = LittleFS.open("/persistentValue.json", "w+");
     if (!file)
     {
-      Serial.println("Failed to open file for writing");
+      Serial.println("Can not open persistentValue.json for writing");
       LittleFS.end();
       return;
     }
@@ -116,7 +116,7 @@ void savePersistentValue(String key, T value)
     DeserializationError error = deserializeJson(doc, file);
     if (error)
     {
-      Serial.println("Failed to read file, using empty JSON object");
+      Serial.println("Can not parse persistentValue.json");
     }
   }
 
@@ -128,7 +128,7 @@ void savePersistentValue(String key, T value)
 
   if (serializeJson(doc, file) == 0)
   {
-    Serial.println("Failed to write to file");
+    Serial.println("Can not serialize persistentValue.json");
   }
 
   // 关闭文件
@@ -167,7 +167,7 @@ T getPersistentValue(String key, T defaultValue)
   File file = LittleFS.open("/persistentValue.json", "r");
   if (!file)
   {
-    Serial.println("Failed to open file for reading");
+    Serial.println("Can not read persistentValue.json");
     return value;
   }
 
@@ -175,7 +175,7 @@ T getPersistentValue(String key, T defaultValue)
   DeserializationError error = deserializeJson(persistentValueJson, file);
   if (error)
   {
-    Serial.println("Failed to read file");
+    Serial.println("Can not parse persistentValue.json");
     file.close();
     return value;
   }
@@ -185,6 +185,17 @@ T getPersistentValue(String key, T defaultValue)
   file.close();
   LittleFS.end();
   return value;
+}
+
+void removePersistentValue()
+{
+  if (!LittleFS.begin())
+  {
+    Serial.println("An Error has occurred while mounting LittleFS");
+    return;
+  }
+  LittleFS.remove("/persistentValue.json");
+  LittleFS.end();
 }
 
 RunningValue loadRunningValue()

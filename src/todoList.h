@@ -82,7 +82,7 @@ void displayToScreen(String file = cachedFileName, uint16_t w = 0, uint16_t h = 
   File readFile = LittleFS.open(file, "r");
   if (!readFile)
   {
-    Serial.println("Failed to open file for reading");
+    Serial.printf("Can not open file %s for reading\n", file.c_str());
     return;
   }
 
@@ -248,7 +248,7 @@ void downloadAndDrawTodo()
   File file = LittleFS.open(cachedFileName, "w");
   if (!file)
   {
-    Serial.println("Failed to open file for writing");
+    Serial.printf("Can not open file %s for writing\n", cachedFileName.c_str());
     https.end();
     LittleFS.end();
     return;

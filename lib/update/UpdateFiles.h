@@ -113,7 +113,7 @@ void updateFile(String name, int checkInterval = 60 * 60 * 24)
     }
     else
     {
-      Serial.println("Failed to open file for writing");
+      Serial.printf("Can not open file %s for writing\n", name.c_str());
       LittleFS.end();
     }
   }

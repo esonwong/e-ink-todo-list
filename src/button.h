@@ -56,6 +56,7 @@ void buttonLongPress()
   Serial.println("Button long pressed");
   Serial.println("Erasing Config, restarting");
   wifiManager.resetSettings();
+  removePersistentValue();
   ESP.restart();
 }
 

@@ -102,17 +102,19 @@ void loop()
   button.tick();
   wifiManager.process();
 
-  if (wifiManager.getConfigPortalActive() && WiFi.status() == WL_CONNECTED)
+  if (wifiManager.getConfigPortalActive() || WiFi.status() != WL_CONNECTED)
   {
     return;
   }
-  updateFiles();
-  updateFireWare();
 
-  // 每 1 分钟检查一次是否需要更新 todo
+  // every 60 seconds
   time_t now = time(nullptr);
   if (now - runningValue.lastCheck > 60 && !updating)
   {
+
+    updateFiles();
+    updateFireWare();
+
     updating = true;
     downloadAndDrawTodo();
     updating = false;
