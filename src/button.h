@@ -6,6 +6,8 @@
 #include "gpio16.h"
 #include "store.h"
 
+OneButton button;
+
 void onWakeUp()
 {
   Serial.println("onWakeUp");
@@ -60,11 +62,27 @@ void buttonLongPress()
   ESP.restart();
 }
 
+// Handler function for MultiClick the button with self pointer as a parameter
+void buttonMultiClick()
+{
+  Serial.print("Button multi clicked: ");
+  Serial.println(button.getNumberClicks());
+
+  switch (button.getNumberClicks())
+  {
+  case 5:
+    removePersistentValue();
+    ESP.restart();
+    break;
+  default:
+    break;
+  }
+}
+
 OneButton initButton()
 {
 
   Serial.println("Initializing button...");
-  OneButton button;
 
   Serial.print("Button pin: ");
   Serial.println(BUTTON_PIN);
@@ -87,7 +105,15 @@ OneButton initButton()
   button.attachDoubleClick(buttonDoubleClick);
   button.attachLongPressStart(buttonLongPress);
 
+  // MultiClick button event attachment with self pointer as a parameter
+  button.attachMultiClick(buttonMultiClick);
+
   return button;
+}
+
+void buttonLoop()
+{
+  button.tick();
 }
 
 #endif

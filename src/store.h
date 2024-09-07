@@ -194,7 +194,15 @@ void removePersistentValue()
     Serial.println("An Error has occurred while mounting LittleFS");
     return;
   }
-  LittleFS.remove("/persistentValue.json");
+  Serial.println("Remove persistentValue.json");
+  if (LittleFS.remove("/persistentValue.json"))
+  {
+    Serial.println("Remove persistentValue.json done");
+  }
+  else
+  {
+    Serial.println("Remove persistentValue.json failed");
+  }
   LittleFS.end();
 }
 

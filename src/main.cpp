@@ -12,8 +12,6 @@
 #include "UpdateFiles.h"
 #include "UpdateFirmware.h"
 
-OneButton button;
-
 void setup()
 {
 
@@ -56,8 +54,6 @@ void setup()
   }
   Serial.println("End list files");
 
-  savePersistentValue("certs.ar_last_check_time", 0);
-
   delay(3000);
 
 #ifdef DEBUG_PERSISTENT_STORAGE
@@ -77,7 +73,7 @@ void setup()
   delay(5000);
 
   initStore();
-  button = initButton();
+  initButton();
 
 #if defined(WIFI_SSID) && defined(WIFI_PASS)
   // For debugging
@@ -99,7 +95,7 @@ void setup()
 
 void loop()
 {
-  button.tick();
+  buttonLoop();
   wifiManager.process();
 
   if (wifiManager.getConfigPortalActive() || WiFi.status() != WL_CONNECTED)
