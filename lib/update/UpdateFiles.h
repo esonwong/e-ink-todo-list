@@ -18,16 +18,16 @@ void updateFile(String name)
   int checkInterval = 60 * 60 * 24; // 10 day
   int diff = now - lastCheckTime;
 
-  Serial.print("Update file: ");
-  Serial.println(name);
-  Serial.print("Last check time: ");
-  Serial.println(lastCheckTime);
-  Serial.print("Now: ");
-  Serial.println(now);
-  Serial.print("Diff: ");
-  Serial.println(diff);
-  Serial.print("Check interval: ");
-  Serial.println(checkInterval);
+  // Serial.print("Update file: ");
+  // Serial.println(name);
+  // Serial.print("Last check time: ");
+  // Serial.println(lastCheckTime);
+  // Serial.print("Now: ");
+  // Serial.println(now);
+  // Serial.print("Diff: ");
+  // Serial.println(diff);
+  // Serial.print("Check interval: ");
+  // Serial.println(checkInterval);
 
   if (diff < checkInterval)
   {
