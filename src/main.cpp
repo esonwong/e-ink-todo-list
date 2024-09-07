@@ -92,8 +92,8 @@ void setup()
   {
     setClock();
     // showTextOnScreenCenter("Network Connected");
-    savePersistentValue("certs.ar_last_check_time", 0);
-    savePersistentValue("lastFirmwareCheck", 0);
+    // savePersistentValue("certs.ar_last_check_time", 0);
+    // savePersistentValue("lastFirmwareCheck", 0);
   }
 }
 
