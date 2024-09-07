@@ -37,7 +37,7 @@ void onEndUpdateFireWare()
 void updateFireWare(const char *url = FIREWARE_UPDATE_URL)
 {
 
-  Serial.println("Update Fireware Start");
+  // Serial.println("Update Fireware Start");
 
   int lastFirewareCheck = getPersistentValue("lastFirewareCheck", 0);
   int now = time(nullptr);
