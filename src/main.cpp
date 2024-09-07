@@ -10,7 +10,7 @@
 #include "button.h"
 #include "store.h"
 #include "UpdateFiles.h"
-#include "UpdateFireware.h"
+#include "UpdateFirmware.h"
 
 OneButton button;
 
@@ -56,6 +56,8 @@ void setup()
   }
   Serial.println("End list files");
 
+  savePersistentValue("certs.ar_last_check_time", 0);
+
   delay(3000);
 
 #ifdef DEBUG_PERSISTENT_STORAGE
@@ -65,6 +67,7 @@ void setup()
   savePersistentValue("bool", true);
   savePersistentValue("bool", false);
 #endif
+
 #endif
 
   Serial.print("API URL: ");
@@ -88,7 +91,9 @@ void setup()
   if (initWifiWithManager())
   {
     setClock();
-    showTextOnScreenCenter("Network Connected");
+    // showTextOnScreenCenter("Network Connected");
+    savePersistentValue("certs.ar_last_check_time", 0);
+    savePersistentValue("lastFirmwareCheck", 0);
   }
 }
 

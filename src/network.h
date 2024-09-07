@@ -7,7 +7,7 @@
 #include "store.h"
 #include "clock.h"
 #include "UpdateFiles.h"
-#include "UpdateFireware.h"
+#include "UpdateFirmware.h"
 
 WiFiManager wifiManager;
 
@@ -124,7 +124,7 @@ bool initWifiWithManager()
 
   wifiManager.setTitle("E-ink Todo List");
 
-  showTextOnScreenCenter("Connecting to WiFi " + String(wifiManager.getWiFiSSID()));
+  // showTextOnScreenCenter("Connecting to WiFi " + String(wifiManager.getWiFiSSID()));
 
   if (wifiManager.autoConnect(AP_SSID.c_str(), AP_PASSWORD.c_str()))
   {

@@ -13,8 +13,8 @@ int updateFireWareProgress = 0;
 
 void onStartUpdateFireWare()
 {
-  Serial.println("Update Fireware Start");
-  showTextOnScreenCenter("Updating Fireware");
+  Serial.println("Update Firmware Start");
+  showTextOnScreenCenter("Updating Firmware");
 };
 
 void onProgressUpdateFireWare(int current, int total)
@@ -23,23 +23,23 @@ void onProgressUpdateFireWare(int current, int total)
   if (newProgress != updateFireWareProgress)
   {
     updateFireWareProgress = newProgress;
-    Serial.printf("Update Fireware Progress: %d%%\n", updateFireWareProgress);
+    Serial.printf("Update Firmware Progress: %d%%\n", updateFireWareProgress);
   }
 };
 
 void onEndUpdateFireWare()
 {
-  Serial.println("Update Fireware End");
-  showTextOnScreenCenter("Updated Fireware Success");
+  Serial.println("Update Firmware End");
+  showTextOnScreenCenter("Updated Firmware Success");
   delay(2000);
 };
 
-void updateFireWare(const char *url = FIREWARE_UPDATE_URL)
+void updateFireWare(const char *url = FIRMWARE_UPDATE_URL)
 {
 
-  int lastFirewareCheck = getPersistentValue("lastFirewareCheck", 0);
+  int lastFirmwareCheck = getPersistentValue("lastFirmwareCheck", 0);
   int now = time(nullptr);
-  int diff = now - lastFirewareCheck;
+  int diff = now - lastFirmwareCheck;
 
 #ifdef DEBUG_UPDATE_FIREWARE
   int checkInterval = 60;
@@ -49,15 +49,12 @@ void updateFireWare(const char *url = FIREWARE_UPDATE_URL)
 
   if (diff < checkInterval)
   {
-#ifdef DEBUG_UPDATE_FIREWARE
-    Serial.printf("Skip update fireware, will check again in %d hours\n", (checkInterval - diff) / 3600);
-#endif
     return;
   }
 
-  Serial.println("Update Fireware Start");
+  Serial.println("Update Firmware Start");
 
-  savePersistentValue("lastFirewareCheck", time(nullptr));
+  savePersistentValue("lastFirmwareCheck", time(nullptr));
 
   BearSSL::CertStore certStore;
 
@@ -89,7 +86,7 @@ void updateFireWare(const char *url = FIREWARE_UPDATE_URL)
     Serial.println("UPDATE Firmware SUCCESS");
     break;
   }
-  Serial.println("Update Fireware End");
+  Serial.println("Update Firmware End");
 }
 
 #endif

@@ -8,14 +8,13 @@
 #include "network.h"
 #include "store.h"
 
-void updateFile(String name)
+void updateFile(String name, int checkInterval = 60 * 60 * 24)
 {
 
   String url = String(FILE_UPDATE_URL) + "/" + name;
 
   int lastCheckTime = getPersistentValue(name + "_last_check_time", 0);
   int now = time(nullptr);
-  int checkInterval = 60 * 60 * 24; // 10 day
   int diff = now - lastCheckTime;
 
   // Serial.print("Update file: ");
