@@ -75,6 +75,9 @@ void show401()
 
 void displayToScreen(String file = cachedFileName, uint16_t w = 0, uint16_t h = 0, uint16_t color = GxEPD_BLACK)
 {
+  int start = millis();
+  Serial.printf("Display to screen %s\n", file.c_str());
+
   initDisplay();
   display.fillScreen(GxEPD_WHITE);
 
@@ -122,7 +125,7 @@ void displayToScreen(String file = cachedFileName, uint16_t w = 0, uint16_t h = 
   readFile.close();
   LittleFS.end();
   display.powerOff();
-  Serial.println("draw bitmap done");
+  Serial.printf("Display to screen %s done in %d ms\n", file.c_str(), millis() - start);
 }
 
 void downloadAndDrawTodo()
