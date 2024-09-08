@@ -94,8 +94,7 @@ void configPortalTimeoutCallback()
 bool initWifiWithManager()
 {
 
-  Serial.println("Connecting to WiFi...");
-  Serial.println(WiFi.waitForConnectResult());
+  wifiManager.setHostname("e-ink-todo-list-" + String(ESP.getChipId(), HEX));
 
   Serial.println("API Key: " + String(setting.apiKey));
   Serial.println("API Key Length: " + String(strlen(setting.apiKey)));
