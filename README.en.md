@@ -15,8 +15,8 @@ Use the API provided by [einktodo.com](https://einktodo.com) to display todo ite
 - [ ] Support ESP8266 battery voltage detection
 - [ ] Configuration interface style
 - [ ] QR code for configuring AP connection
-- [ ] CI/CD automatic firmware release
-- [ ] Automatic firmware update
+- [x] CI/CD automatic firmware release
+- [x] Automatic firmware update
 - [x] Automatic update of SSL/TLS root certificates
 - [x] Startup screen
 - [x] Record the last update check time
