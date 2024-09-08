@@ -30,7 +30,7 @@ void updateFile(String name, int checkInterval = 60 * 60 * 24)
 
   if (diff < checkInterval)
   {
-    // Serial.printf("Skip update %s, will check after %d hours\n", name.c_str(), (checkInterval - diff) / 3600);
+    Serial.printf("Skip update %s, will check after %d hours\n", name.c_str(), (checkInterval - diff) / 3600);
     return;
   }
 

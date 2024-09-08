@@ -49,6 +49,7 @@ void updateFireWare(const char *url = FIRMWARE_UPDATE_URL)
 
   if (diff < checkInterval)
   {
+    Serial.printf("Skip update Firmware, will check after %d hours\n", (checkInterval - diff) / 3600);
     return;
   }
 
