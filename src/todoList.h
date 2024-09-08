@@ -124,7 +124,6 @@ void displayToScreen(String file = cachedFileName, uint16_t w = 0, uint16_t h = 
   } while (display.nextPage());
   readFile.close();
   LittleFS.end();
-  display.powerOff();
   Serial.printf("Display to screen %s done in %lu ms\n", file.c_str(), millis() - start);
 }
 

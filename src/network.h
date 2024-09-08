@@ -39,8 +39,6 @@ void configModeCallback(WiFiManager *myWiFiManager)
     // Todo: Show AP QR Code
 
   } while (display.nextPage());
-
-  display.powerOff();
 }
 
 void preSaveConfigCallback()
@@ -88,7 +86,6 @@ void configPortalTimeoutCallback()
   display.setCursor(0, 0);
   display.println("Config portal timeout!");
   display.display();
-  display.powerOff();
 }
 
 bool initWifiWithManager()
