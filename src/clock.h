@@ -47,7 +47,7 @@ void drawCurrentTime()
   display.getTextBounds(timeStr, 0, 0, &tbx, &tby, &tbw, &tbh);
 
   int x = display.width() - tbw - 10;
-  int y = 10;
+  int y = display.height() - tbh - 10;
 
   display.setCursor(x, y);
   display.print(timeStr);

@@ -95,6 +95,7 @@ void updateFile(String name, int checkInterval = 60 * 60 * 24)
       size_t readSize;
       size_t readSizeTotal = 0;
       int progress = 0;
+      Serial.printf("Download %s Progress: %d%%", name.c_str(), progress);
       while (https.connected() && (readSize = stream->readBytes(buff, std::min(buffSize, (contentLength - readSizeTotal)))) > 0)
       {
         downloadedFile.write(buff, readSize);
@@ -103,9 +104,12 @@ void updateFile(String name, int checkInterval = 60 * 60 * 24)
         if (newProgress != progress)
         {
           progress = newProgress;
-          Serial.printf("Download %s Progress: %d%%\n", name.c_str(), progress);
+          Serial.print("\r");
+          Serial.print("                                          ");
+          Serial.printf("\rDownload %s Progress: %d%%", name.c_str(), progress);
         }
       }
+      Serial.println();
       downloadedFile.close();
       LittleFS.end();
       savePersistentValue(name + "_etag", https.header("etag"));

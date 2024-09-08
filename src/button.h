@@ -72,7 +72,6 @@ void buttonMultiClick()
     break;
   case 5:
     removePersistentValue();
-    ESP.restart();
     break;
   case 6:
     if (WiFi.status() == WL_CONNECTED)

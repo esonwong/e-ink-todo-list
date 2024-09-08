@@ -43,6 +43,7 @@ void setup()
   // Print chip information
   Serial.print("Device ID: ");
   Serial.println(DeviceID);
+  Serial.println();
 
   Serial.println("List files");
   Dir dir = LittleFS.openDir("/");
@@ -53,7 +54,7 @@ void setup()
     File f = dir.openFile("r");
     Serial.println(f.size());
   }
-  Serial.println("End list files");
+  Serial.println("End list files \n");
 
   delay(3000);
 

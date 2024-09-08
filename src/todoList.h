@@ -120,12 +120,12 @@ void displayToScreen(String file = cachedFileName, uint16_t w = 0, uint16_t h = 
         }
       }
     }
-    drawCurrentTime();
+    // drawCurrentTime();
   } while (display.nextPage());
   readFile.close();
   LittleFS.end();
   display.powerOff();
-  Serial.printf("Display to screen %s done in %d ms\n", file.c_str(), millis() - start);
+  Serial.printf("Display to screen %s done in %lu ms\n", file.c_str(), millis() - start);
 }
 
 void downloadAndDrawTodo()
@@ -258,16 +258,20 @@ void downloadAndDrawTodo()
   }
 
   Serial.println("Start reading response body");
-  int bitsTotal = w * h;
   uint8_t buff[128];
   size_t buffSize = sizeof(buff);
   size_t readSize;
   size_t readSizeTotal = 0;
-  while (https.connected() && (readSize = stream->readBytes(buff, std::min(buffSize, bitsTotal - readSizeTotal))) > 0)
+  Serial.printf("Download %s Progress: 0%% , 0/%d bytes", cachedFileName.c_str(), contentLength);
+  while (https.connected() && (readSize = stream->readBytes(buff, std::min(buffSize, (contentLength - readSizeTotal)))) > 0)
   {
     file.write(buff, readSize);
     readSizeTotal += readSize;
+    Serial.print("\r");
+    Serial.print("                                                                     ");
+    Serial.printf("\rDownload %s Progress: %d%% , %d/%d bytes", cachedFileName.c_str(), (readSizeTotal * 100) / contentLength, readSizeTotal, contentLength);
   }
+  Serial.println();
   file.close();
   LittleFS.end();
 
@@ -275,6 +279,6 @@ void downloadAndDrawTodo()
   https.end();
 
   strcpy(runningValue.todoLastModified, lastModified.c_str());
-
+  delay(50);
   displayToScreen(cachedFileName, w, h, GxEPD_BLACK);
 }

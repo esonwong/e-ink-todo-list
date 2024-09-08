@@ -15,6 +15,7 @@ void onStartUpdateFireWare()
 {
   Serial.println("Update Firmware Start");
   showTextOnScreenCenter("Updating Firmware");
+  Serial.printf("Update Firmware Progress: %d%%", updateFireWareProgress);
 };
 
 void onProgressUpdateFireWare(int current, int total)
@@ -23,12 +24,15 @@ void onProgressUpdateFireWare(int current, int total)
   if (newProgress != updateFireWareProgress)
   {
     updateFireWareProgress = newProgress;
-    Serial.printf("Update Firmware Progress: %d%%\n", updateFireWareProgress);
+    Serial.print("\r");
+    Serial.print("                                                            ");
+    Serial.printf("\rUpdate Firmware Progress: %d%%, %d/%d bytes", updateFireWareProgress, current, total);
   }
 };
 
 void onEndUpdateFireWare()
 {
+  Serial.println();
   Serial.println("Update Firmware End");
   showTextOnScreenCenter("Updated Firmware Success");
   delay(2000);
