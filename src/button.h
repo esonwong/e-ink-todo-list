@@ -29,7 +29,8 @@ void buttonClick()
   Serial.println("Button clicked");
   if (wifiManager.getConfigPortalActive())
   {
-    Serial.println("Config portal active");
+    Serial.println("Close Config Portal");
+    wifiManager.stopConfigPortal();
     return;
   }
 
@@ -41,22 +42,18 @@ void buttonClick()
     downloadAndDrawTodo();
     updating = false;
   }
-  else
-  {
-    Serial.println("WiFi not connected");
-    wifiManager.startConfigPortal(AP_SSID.c_str(), AP_PASSWORD.c_str());
-  }
 }
 
 void buttonDoubleClick()
 {
   Serial.println("Button double clicked");
+  // TODO: Switch to the next mode
 }
 
 void buttonLongPress()
 {
   Serial.println("Button long pressed");
-  Serial.println("Erasing Config, restarting");
+  Serial.println("Erasing configuration、persistent value and restarting...");
   wifiManager.resetSettings();
   removePersistentValue();
   ESP.restart();
@@ -70,10 +67,19 @@ void buttonMultiClick()
 
   switch (button.getNumberClicks())
   {
+  case 4:
+    ESP.restart();
+    break;
   case 5:
     removePersistentValue();
     ESP.restart();
     break;
+  case 6:
+    if (WiFi.status() == WL_CONNECTED)
+    {
+      Serial.println("Disconnecting WiFi");
+      wifiManager.disconnect();
+    }
   default:
     break;
   }

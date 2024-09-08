@@ -11,6 +11,7 @@
 #include "store.h"
 #include "UpdateFiles.h"
 #include "UpdateFirmware.h"
+#include <ESP8266mDNS.h>
 
 void setup()
 {
@@ -88,8 +89,6 @@ void setup()
   {
     setClock();
     // showTextOnScreenCenter("Network Connected");
-    // savePersistentValue("certs.ar_last_check_time", 0);
-    // savePersistentValue("lastFirmwareCheck", 0);
   }
 }
 
@@ -98,9 +97,22 @@ void loop()
   buttonLoop();
   wifiManager.process();
 
-  if (wifiManager.getConfigPortalActive() || WiFi.status() != WL_CONNECTED)
+  if (wifiManager.getConfigPortalActive())
   {
     return;
+  }
+
+  // Network reconnecting
+  if (WiFi.status() != WL_CONNECTED)
+  {
+    if (initWifiWithManager())
+    {
+      setClock();
+    }
+    else
+    {
+      return;
+    }
   }
 
   // every 60 seconds
@@ -108,8 +120,10 @@ void loop()
   if (now - runningValue.lastCheck > 60 && !updating)
   {
 
+#ifdef E_INK_750
     updateFiles();
     updateFireWare();
+#endif
 
     updating = true;
     downloadAndDrawTodo();
