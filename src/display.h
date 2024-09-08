@@ -96,7 +96,7 @@ void showLaunchScreen()
     display.println(author);
 #ifdef GIT_VERSION
     uint16_t w3, h3;
-    display.setTextSize(1);
+    display.setTextSize(2);
     display.getTextBounds(GIT_VERSION, 0, 0, &x, &y, &w3, &h3);
     display.setCursor((display.width() - w3) / 2, display.height() - h3 - 10);
     display.println(GIT_VERSION);
