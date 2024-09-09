@@ -48,7 +48,7 @@ GxEPD2_3C<GxEPD2_750c_Z90, GxEPD2_750c_Z90::HEIGHT / PAGES> display(GxEPD2_750c_
 void initDisplay()
 {
   Serial.println("Initializing display...");
-
+  delay(50);
 #ifdef ESP32
   SPI.end();
   SPI.begin(13, 14, 14, 0);

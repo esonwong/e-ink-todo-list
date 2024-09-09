@@ -17,17 +17,18 @@ void setup()
 {
 
   Serial.begin(115200);
+  delay(3000);
   // Serial.setDebugOutput(true);
   Serial.println();
   Serial.println("Steup Start");
-  delay(3000);
-
-#ifdef DEBUG
+  delay(500);
 
 #ifdef GIT_VERSION
   Serial.print("Version: ");
   Serial.println(GIT_VERSION);
 #endif
+
+#ifdef DEBUG
 
   Serial.print("Sketch MD5: ");
   Serial.println(ESP.getSketchMD5());
@@ -71,8 +72,9 @@ void setup()
   Serial.print("API URL: ");
   Serial.println(setting.apiUrl);
 
+  delay(500);
   showLaunchScreen();
-  delay(5000);
+  delay(3000);
 
   initStore();
   initButton();
