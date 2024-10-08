@@ -21,7 +21,7 @@ U8G2_FOR_ADAFRUIT_GFX u8g2Fonts;
 #define DC 4
 #define RST 2
 #define BUSY 5
-#define PAGES 20
+#define PAGES 2
 #endif
 
 #ifdef GDEW075Z08
@@ -85,6 +85,15 @@ void showLaunchScreen()
     uint16_t w1, w2, h1, h2;
     const char *name = "E-Ink Todo List";
     const char *author = "by @Eson";
+
+#ifdef DEBUG
+    display.setTextSize(1);
+    display.setCursor(400, 400);
+    display.println("DEBUG: width=" + String(display.width()) + ", height=" + String(display.height()));
+
+    // draw a rectangle
+    display.drawRect(40, 320, display.width() - 80, display.height() - 80, GxEPD_BLACK);
+#endif
 
     display.setTextSize(3);
     display.getTextBounds(name, 0, 0, &x, &y, &w1, &h1);
