@@ -123,7 +123,7 @@ void loop()
   if (now - runningValue.lastCheck > 60 && !updating)
   {
 
-#ifdef E_INK_750
+#ifdef ENABLE_OTA
     updateFiles();
     updateFireWare();
 #endif
