@@ -67,7 +67,7 @@ void setup()
   savePersistentValue("bool", false);
 #endif
 
-#endif
+#endif // DEBUG
 
   Serial.print("API URL: ");
   Serial.println(setting.apiUrl);
@@ -93,6 +93,35 @@ void setup()
     setClock();
     // showTextOnScreenCenter("Network Connected");
   }
+
+#ifdef ENABLE_PCB_TEST
+  String testInfo = "";
+  testInfo += "Test Mode\n";
+  testInfo += "Version: " + String(GIT_VERSION) + "\n";
+  testInfo += "Device ID: " + DeviceID + "\n";
+  testInfo += "Sketch MD5: " + String(ESP.getSketchMD5()) + "\n";
+  testInfo += "Free Heap: " + String(ESP.getFreeHeap()) + "\n";
+  testInfo += "Flash Chip ID: " + String(ESP.getFlashChipId()) + "\n";
+
+  // network info
+  testInfo += "WiFi SSID: " + String(WIFI_SSID) + "\n";
+  testInfo += "WiFi ip: " + WiFi.localIP().toString() + "\n";
+  testInfo += "WiFi mac: " + WiFi.macAddress() + "\n";
+
+  // time
+  time_t now = time(nullptr);
+  struct tm *timeinfo = localtime(&now);
+  char timeStr[20];
+  strftime(timeStr, 20, "%Y-%m-%d %H:%M:%S", timeinfo);
+
+  // persistent value
+  savePersistentValue("PCB_TEST", "PCB test persistent value is OK!");
+  testInfo += "Persistent Value: " + String(getPersistentValue("PCB_TEST", "PCB test persistent value is not OK!")) + "\n";
+
+  showTextOnScreenCenter(testInfo);
+
+  delay(5 * 60 * 1000);
+#endif // ENABLE_PCB_TEST
 }
 
 void loop()
