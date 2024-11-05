@@ -247,6 +247,7 @@ void downloadAndDrawTodo()
   String lastModified = https.header("Last-Modified");
   Serial.printf("Last-Modified: %s\n", lastModified.c_str());
 
+  LittleFS.begin();
   File file = LittleFS.open(cachedFileName, "w");
   if (!file)
   {
