@@ -1,136 +1,72 @@
 #ifndef _DISPLAY_H_
 #define _DISPLAY_H_
 
-#include <GxEPD2_3C.h>
-// #include <GxEPD2_BW.h>
-#include <U8g2_for_Adafruit_GFX.h>
+#include "display_driver.h"
 
-U8G2_FOR_ADAFRUIT_GFX u8g2Fonts;
-
-#ifdef ESP32
-#define CS 15
-#define DC 0
-#define RST 2
-#define BUSY 4
-#define PAGES 2
-#endif
-
-#ifdef ESP8266
-#define CS SS // 15
-#define DC 4
-#define RST 2
-#define BUSY 5
-#define PAGES 2
-#endif
-
-#ifdef GDEW075Z08
-GxEPD2_3C<GxEPD2_750c_Z08, GxEPD2_750c_Z08::HEIGHT / PAGES> display(GxEPD2_750c_Z08(CS, DC, RST, BUSY));
-#endif
-
-#ifdef E_INK_750
-// GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT> display(GxEPD2_750_T7(CS, DC, RST, BUSY));
-GxEPD2_3C<GxEPD2_750c_Z08, GxEPD2_750c_Z08::HEIGHT / PAGES> display(GxEPD2_750c_Z08(CS, DC, RST, BUSY));
-#endif
-
-#ifdef E_INK_750_V1
-GxEPD2_BW<GxEPD2_750c, GxEPD2_750c::HEIGHT / PAGES> display(GxEPD2_750c(CS, DC, RST, BUSY));
-#endif
-
-#ifdef E_INK_290
-GxEPD2_BW<GxEPD2_290, GxEPD2_290::HEIGHT> display(GxEPD2_290(CS, DC, RST, BUSY));
-#endif
-
-#ifdef E_INK_75Z90
-GxEPD2_3C<GxEPD2_750c_Z90, GxEPD2_750c_Z90::HEIGHT / PAGES> display(GxEPD2_750c_Z90(CS, DC, RST, BUSY));
-#endif
-
-#ifdef E_INK_750_BW
-GxEPD2_BW<GxEPD2_750_T7, GxEPD2_750_T7::HEIGHT / PAGES> display(GxEPD2_750_T7(CS, DC, RST, BUSY));
-#endif
+DisplayDriver display = DisplayDriver();
 
 void initDisplay()
 {
   Serial.println("Initializing display...");
   delay(50);
-#ifdef ESP32
-  SPI.end();
-  SPI.begin(13, 14, 14, 0);
-
-  // for Waveshare boards with "clever" reset circuit
-  display.init(115200, true, 2, false);
-#else
-  display.init(115200);
-#endif
-
-  display.setFullWindow();
-  display.setRotation(0);
-  display.setTextSize(2);
-
-#ifdef E_INK_290
-  display.setRotation(1);
-  display.setTextSize(1);
-#endif
-
-  display.fillScreen(GxEPD_WHITE);
-  display.setTextColor(GxEPD_BLACK);
 
   Serial.println("Display initialized");
 }
 
 void showLaunchScreen()
 {
-  initDisplay();
-  do
-  {
-    display.fillScreen(GxEPD_WHITE);
-    display.setCursor(0, 0);
-    int16_t x, y;
-    uint16_t w1, w2, h1, h2;
-    const char *name = "E-Ink Todo List";
-    const char *author = "by @Eson";
+  //   initDisplay();
+  //   do
+  //   {
+  //     display.fillScreen(GxEPD_WHITE);
+  //     display.setCursor(0, 0);
+  //     int16_t x, y;
+  //     uint16_t w1, w2, h1, h2;
+  //     const char *name = "E-Ink Todo List";
+  //     const char *author = "by @Eson";
 
-#ifdef DEBUG
-    display.setTextSize(1);
-    display.setCursor(400, 400);
-    display.println("DEBUG: width=" + String(display.width()) + ", height=" + String(display.height()));
+  // #ifdef DEBUG
+  //     display.setTextSize(1);
+  //     display.setCursor(400, 400);
+  //     display.println("DEBUG: width=" + String(display.width()) + ", height=" + String(display.height()));
 
-    // draw a rectangle
-    display.drawRect(40, 320, display.width() - 80, display.height() - 80, GxEPD_BLACK);
-#endif
+  //     // draw a rectangle
+  //     display.drawRect(40, 320, display.width() - 80, display.height() - 80, GxEPD_BLACK);
+  // #endif
 
-    display.setTextSize(3);
-    display.getTextBounds(name, 0, 0, &x, &y, &w1, &h1);
-    display.setCursor((display.width() - w1) / 2, display.height() / 2 - h1);
-    display.println(name);
-    display.setTextSize(2);
-    display.getTextBounds(author, 0, 0, &x, &y, &w2, &h2);
-    display.setCursor((display.width() - w2) / 2, display.height() / 2 + h1 / 2);
-    display.println(author);
-#ifdef GIT_VERSION
-    uint16_t w3, h3;
-    display.setTextSize(2);
-    display.getTextBounds(GIT_VERSION, 0, 0, &x, &y, &w3, &h3);
-    display.setCursor((display.width() - w3) / 2, display.height() - h3 - 10);
-    display.println(GIT_VERSION);
-#endif
+  //     display.setTextSize(3);
+  //     display.getTextBounds(name, 0, 0, &x, &y, &w1, &h1);
+  //     display.setCursor((display.width() - w1) / 2, display.height() / 2 - h1);
+  //     display.println(name);
+  //     display.setTextSize(2);
+  //     display.getTextBounds(author, 0, 0, &x, &y, &w2, &h2);
+  //     display.setCursor((display.width() - w2) / 2, display.height() / 2 + h1 / 2);
+  //     display.println(author);
+  // #ifdef GIT_VERSION
+  //     uint16_t w3, h3;
+  //     display.setTextSize(2);
+  //     display.getTextBounds(GIT_VERSION, 0, 0, &x, &y, &w3, &h3);
+  //     display.setCursor((display.width() - w3) / 2, display.height() - h3 - 10);
+  //     display.println(GIT_VERSION);
+  // #endif
 
-  } while (display.nextPage());
+  //   } while (display.nextPage());
 }
 
 void showTextOnScreenCenter(const char *text, uint8_t textSize = 2)
 {
-  initDisplay();
-  display.fillScreen(GxEPD_WHITE);
-  display.setCursor(0, 0);
-  int16_t x, y;
-  uint16_t w, h;
-  do
-  {
-    display.setTextSize(textSize);
-    display.getTextBounds(text, 0, 0, &x, &y, &w, &h);
-    display.setCursor((display.width() - w) / 2, (display.height() - h) / 2);
-    display.println(text);
-  } while (display.nextPage());
+  // initDisplay();
+  // display.fillScreen(GxEPD_WHITE);
+  // display.setCursor(0, 0);
+  // int16_t x, y;
+  // uint16_t w, h;
+  // do
+  // {
+  //   display.setTextSize(textSize);
+  //   display.getTextBounds(text, 0, 0, &x, &y, &w, &h);
+  //   display.setCursor((display.width() - w) / 2, (display.height() - h) / 2);
+  //   display.println(text);
+  // } while (display.nextPage());
 }
 
 void showTextOnScreenCenter(String text, uint8_t textSize = 2)

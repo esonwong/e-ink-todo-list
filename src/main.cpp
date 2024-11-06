@@ -1,17 +1,15 @@
 #include <Arduino.h>
-#include <GxEPD2_BW.h>
-#include <U8g2_for_Adafruit_GFX.h>
 #include "todoList.h"
 #include "config.h"
 #include "network.h"
 #include "led.h"
-#include "display.h"
 #include "clock.h"
 #include "button.h"
 #include "store.h"
 #include "UpdateFiles.h"
 #include "UpdateFirmware.h"
 #include <ESP8266mDNS.h>
+#include "display.h"
 
 void setup()
 {
@@ -22,6 +20,8 @@ void setup()
   Serial.println();
   Serial.println("Steup Start");
   delay(500);
+
+  return;
 
 #ifdef GIT_VERSION
   Serial.print("Version: ");

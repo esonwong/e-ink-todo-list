@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <GxEPD2_BW.h>
 #include "display.h"
 #include "store.h"
 #include "config.h"
@@ -62,24 +61,24 @@ void showNoContent()
 
 void show401()
 {
-  initDisplay();
-  do
-  {
-    display.fillScreen(GxEPD_WHITE);
-    display.setTextColor(GxEPD_BLACK);
-    display.setCursor(0, 0);
-    display.println("API Key authorization failed!");
-    display.println("Please long press the button to enter config mode!");
-  } while (display.nextPage());
+  // initDisplay();
+  // do
+  // {
+  //   display.fillScreen(GxEPD_WHITE);
+  //   display.setTextColor(GxEPD_BLACK);
+  //   display.setCursor(0, 0);
+  //   display.println("API Key authorization failed!");
+  //   display.println("Please long press the button to enter config mode!");
+  // } while (display.nextPage());
 }
 
-void displayToScreen(String file = cachedFileName, uint16_t w = 0, uint16_t h = 0, uint16_t color = GxEPD_BLACK)
+void displayToScreen(String file = cachedFileName, uint16_t w = 0, uint16_t h = 0, DisplayColor color = DISPLAY_COLOR_BLACK)
 {
   int start = millis();
   Serial.printf("Display to screen %s\n", file.c_str());
 
-  initDisplay();
-  display.fillScreen(GxEPD_WHITE);
+  // initDisplay();
+  // display.fillScreen(GxEPD_WHITE);
 
   LittleFS.begin();
   File readFile = LittleFS.open(file, "r");
@@ -89,39 +88,39 @@ void displayToScreen(String file = cachedFileName, uint16_t w = 0, uint16_t h = 
     return;
   }
 
-  do
-  {
-    readFile.seek(0);
-    uint16_t x = 0;
-    uint16_t y = 0;
-    uint8_t buf[128];
-    while (readFile.available())
-    {
-      readFile.read(buf, sizeof(buf));
-      // draw pixel from buf, 8 pixels in a byte, width is w, height is h
-      for (unsigned int i = 0; i < sizeof(buf); i++)
-      {
-        for (int j = 0; j < 8; j++)
-        {
-          if (x >= w)
-          {
-            x = 0;
-            y++;
-          }
-          if (y >= h)
-          {
-            break;
-          }
-          if (buf[i] & (0x80 >> j))
-          {
-            display.drawPixel(x, y, color);
-          }
-          x++;
-        }
-      }
-    }
-    // drawCurrentTime();
-  } while (display.nextPage());
+  // do
+  // {
+  //   readFile.seek(0);
+  //   uint16_t x = 0;
+  //   uint16_t y = 0;
+  //   uint8_t buf[128];
+  //   while (readFile.available())
+  //   {
+  //     readFile.read(buf, sizeof(buf));
+  //     // draw pixel from buf, 8 pixels in a byte, width is w, height is h
+  //     for (unsigned int i = 0; i < sizeof(buf); i++)
+  //     {
+  //       for (int j = 0; j < 8; j++)
+  //       {
+  //         if (x >= w)
+  //         {
+  //           x = 0;
+  //           y++;
+  //         }
+  //         if (y >= h)
+  //         {
+  //           break;
+  //         }
+  //         if (buf[i] & (0x80 >> j))
+  //         {
+  //           display.drawPixel(x, y, color);
+  //         }
+  //         x++;
+  //       }
+  //     }
+  //   }
+  //   // drawCurrentTime();
+  // } while (display.nextPage());
   readFile.close();
   LittleFS.end();
   Serial.printf("Display to screen %s done in %lu ms\n", file.c_str(), millis() - start);
@@ -166,7 +165,7 @@ void downloadAndDrawTodo()
 
   Serial.println("Last-Modified: " + savedTodoLastModified);
 
-  String url = String(apiRoot) + "?width=" + String(display.width()) + "&height=" + String(display.height());
+  String url = String(apiRoot) + "?width=" + String(display.width) + "&height=" + String(display.height);
 
   Serial.printf("GET %s\n", url.c_str());
   Serial.printf("If-Modified-Since: %s\n", savedTodoLastModified.c_str());
@@ -280,5 +279,5 @@ void downloadAndDrawTodo()
 
   strcpy(runningValue.todoLastModified, lastModified.c_str());
   delay(50);
-  displayToScreen(cachedFileName, w, h, GxEPD_BLACK);
+  displayToScreen(cachedFileName, w, h, DISPLAY_COLOR_BLACK);
 }

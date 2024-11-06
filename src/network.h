@@ -21,24 +21,24 @@ void onConnectNetwork()
 void configModeCallback(WiFiManager *myWiFiManager)
 {
 
-  initDisplay();
+  //   initDisplay();
 
-  do
-  {
-    display.fillScreen(GxEPD_WHITE);
-    display.setTextColor(GxEPD_BLACK);
-    display.setCursor(0, 0);
-    display.println("Entered config mode");
-    display.println("Please connect to the AP: " + String(myWiFiManager->getConfigPortalSSID()));
-    display.println("Password: " + AP_PASSWORD);
-    display.println("Config Web Server: http://" + WiFi.softAPIP().toString());
-#ifdef GIT_VERSION
-    display.println("Version: " + String(GIT_VERSION));
-#endif
+  //   do
+  //   {
+  //     display.fillScreen(GxEPD_WHITE);
+  //     display.setTextColor(GxEPD_BLACK);
+  //     display.setCursor(0, 0);
+  //     display.println("Entered config mode");
+  //     display.println("Please connect to the AP: " + String(myWiFiManager->getConfigPortalSSID()));
+  //     display.println("Password: " + AP_PASSWORD);
+  //     display.println("Config Web Server: http://" + WiFi.softAPIP().toString());
+  // #ifdef GIT_VERSION
+  //     display.println("Version: " + String(GIT_VERSION));
+  // #endif
 
-    // Todo: Show AP QR Code
+  //     // Todo: Show AP QR Code
 
-  } while (display.nextPage());
+  //   } while (display.nextPage());
 }
 
 void preSaveConfigCallback()
@@ -79,13 +79,13 @@ void setSaveParamsCallback()
 
 void configPortalTimeoutCallback()
 {
-  Serial.println("Config portal timeout");
-  initDisplay();
-  display.fillScreen(GxEPD_WHITE);
-  display.setTextColor(GxEPD_BLACK);
-  display.setCursor(0, 0);
-  display.println("Config portal timeout!");
-  display.display();
+  // Serial.println("Config portal timeout");
+  // initDisplay();
+  // display.fillScreen(GxEPD_WHITE);
+  // display.setTextColor(GxEPD_BLACK);
+  // display.setCursor(0, 0);
+  // display.println("Config portal timeout!");
+  // display.display();
 }
 
 bool initWifiWithManager()

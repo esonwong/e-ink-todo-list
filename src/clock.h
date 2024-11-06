@@ -32,25 +32,25 @@ void setClock()
 void drawCurrentTime()
 {
   // partial update display
-  time_t now = time(nullptr);
-  struct tm *timeinfo = localtime(&now);
-  char timeStr[20];
-  strftime(timeStr, 20, "%Y-%m-%d %H:%M:%S", timeinfo);
-  Serial.println(timeStr);
+  // time_t now = time(nullptr);
+  // struct tm *timeinfo = localtime(&now);
+  // char timeStr[20];
+  // strftime(timeStr, 20, "%Y-%m-%d %H:%M:%S", timeinfo);
+  // Serial.println(timeStr);
 
-  display.setTextColor(GxEPD_BLACK);
-  display.setTextSize(1);
+  // display.setTextColor(GxEPD_BLACK);
+  // display.setTextSize(1);
 
-  int16_t tbx, tby;
-  uint16_t tbw, tbh; // boundary box window
-  // align with centered HelloWorld
-  display.getTextBounds(timeStr, 0, 0, &tbx, &tby, &tbw, &tbh);
+  // int16_t tbx, tby;
+  // uint16_t tbw, tbh; // boundary box window
+  // // align with centered HelloWorld
+  // display.getTextBounds(timeStr, 0, 0, &tbx, &tby, &tbw, &tbh);
 
-  int x = display.width() - tbw - 10;
-  int y = display.height() - tbh - 10;
+  // int x = display.width() - tbw - 10;
+  // int y = display.height() - tbh - 10;
 
-  display.setCursor(x, y);
-  display.print(timeStr);
+  // display.setCursor(x, y);
+  // display.print(timeStr);
 }
 
 #endif
