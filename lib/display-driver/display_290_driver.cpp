@@ -1,43 +1,40 @@
-
 #include "display_290_driver.h"
+#include <Arduino.h>
 
-DisplayDriver::DisplayDriver()
+DisplayDriver290::DisplayDriver290()
 {
-    width = DISPLAY_WIDTH;
-    height = DISPLAY_HEIGHT;
-    pages = DISPLAY_PAGES;
+    Serial.println("Initializing display 290...");
     pageByteLength = width * height / 8 / pages;
-    currentPageData.resize(pageByteLength);
 }
 
-DisplayDriver::~DisplayDriver()
+DisplayDriver290::~DisplayDriver290()
 {
 }
 
-void DisplayDriver::initialize()
+void DisplayDriver290::initialize()
 {
     // 初始化 2.90 寸屏幕
 }
 
-void DisplayDriver::clear()
+void DisplayDriver290::clear()
 {
 }
 
-void DisplayDriver::drawPixel(uint16_t x, uint16_t y, DisplayColor color)
+void DisplayDriver290::drawPixel(uint16_t x, uint16_t y, DisplayColor color)
 {
 }
 
-void DisplayDriver::drawRectangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, DisplayColor color)
+void DisplayDriver290::drawRectangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, DisplayColor color)
 {
 }
 
-void DisplayDriver::display(const std::function<void(BaseDisplayDriver &)> drawFunction)
+void DisplayDriver290::display(const std::function<void(BaseDisplayDriver &)> drawFunction)
 {
     state = DISPLAY_DRIVER_DRAWING;
     sendDisplayDataWithColor(drawFunction, DISPLAY_COLOR_BLACK);
 }
 
-void DisplayDriver::process()
+void DisplayDriver290::process()
 {
     if (state == DISPLAY_DRIVER_DRAWING)
     {
@@ -54,24 +51,24 @@ void DisplayDriver::process()
     }
 }
 
-void DisplayDriver::testDisplay()
+void DisplayDriver290::testDisplay()
 {
     // 显示测试图案
     display([](BaseDisplayDriver &driver)
             { driver.drawRectangle(10, 10, 286, 118, DISPLAY_COLOR_BLACK); });
 }
 
-void DisplayDriver::sendDisplayDataWithColor(const std::function<void(BaseDisplayDriver &)> drawFunction, DisplayColor color)
+void DisplayDriver290::sendDisplayDataWithColor(const std::function<void(BaseDisplayDriver &)> drawFunction, DisplayColor color)
 {
     currentSendingColor = color;
     currentSendingPage = 0;
     drawFunction(*this);
 }
 
-void DisplayDriver::refresh()
+void DisplayDriver290::refresh()
 {
 }
 
-void DisplayDriver::sendPageData()
+void DisplayDriver290::sendPageData()
 {
 }

@@ -68,13 +68,13 @@ public:
     virtual void process() = 0;
     virtual void testDisplay() = 0;
 
-    int width = 800;  // Width of the display.
-    int height = 480; // Height of the display.
-    int pages = 8;    // Number of pages in the display buffer.
+    static const int width;  // Width of the display.
+    static const int height; // Height of the display.
+    static const int pages;  // Number of pages in the display buffer.
 
 protected:
     std::vector<uint8_t> currentPageData;
-    uint16_t pageByteLength = width * height / 8 / pages; ///< Length of a page in bytes.
+    uint16_t pageByteLength;
     uint8_t currentSendingPage;
     DisplayColor currentSendingColor;
 

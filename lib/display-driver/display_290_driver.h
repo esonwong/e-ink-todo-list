@@ -1,13 +1,12 @@
-
 #pragma once
 
 #include "base_display_driver.h"
 
-class DisplayDriver : public BaseDisplayDriver
+class DisplayDriver290 : public BaseDisplayDriver
 {
 public:
-    DisplayDriver();
-    ~DisplayDriver();
+    DisplayDriver290();
+    ~DisplayDriver290();
 
     void initialize() override;
     void clear() override;
@@ -16,14 +15,13 @@ public:
     void display(const std::function<void(BaseDisplayDriver &)> drawFunction) override;
     void process() override;
     void testDisplay() override;
+    static const int width = 296;  // Width of the display.
+    static const int height = 128; // Height of the display.
+    static const int pages = 4;    // Number of pages in the display.
 
-protected:
+private:
+    int currentSendingPage = 0;
     void sendDisplayDataWithColor(const std::function<void(BaseDisplayDriver &)> drawFunction, DisplayColor color) override;
     void refresh() override;
     void sendPageData() override;
-
-private:
-    static const int DISPLAY_WIDTH = 296;
-    static const int DISPLAY_HEIGHT = 128;
-    static const int DISPLAY_PAGES = 4;
 };

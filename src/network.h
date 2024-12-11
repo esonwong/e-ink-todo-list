@@ -1,5 +1,4 @@
-#ifndef _NETWORK_H_
-#define _NETWORK_H_
+#pragma once
 
 #include <WiFiManager.h>
 #include "config.h"
@@ -131,5 +130,3 @@ bool initWifiWithManager()
   }
   return false;
 }
-
-#endif

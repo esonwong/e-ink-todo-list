@@ -1,17 +1,21 @@
-#ifndef _DISPLAY_H_
-#define _DISPLAY_H_
+#pragma once
 
 #ifdef E_INK_750
 #include "display_750_driver.h"
+DisplayDriver750 display = DisplayDriver750();
 #endif
 
-DisplayDriver display = DisplayDriver();
+#ifdef E_INK_290
+#include "display_290_driver.h"
+DisplayDriver290 display = DisplayDriver290();
+#endif
 
 void initDisplay()
 {
   Serial.println("Initializing display...");
-  delay(50);
-
+  display.initialize();
+  Serial.println("Display width: " + String(display.width));
+  Serial.println("Display height: " + String(display.height));
   Serial.println("Display initialized");
 }
 
@@ -75,5 +79,3 @@ void showTextOnScreenCenter(String text, uint8_t textSize = 2)
 {
   showTextOnScreenCenter(text.c_str(), textSize);
 }
-
-#endif
