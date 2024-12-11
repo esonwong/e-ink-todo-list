@@ -18,10 +18,8 @@ void setup()
   delay(3000);
   // Serial.setDebugOutput(true);
   Serial.println();
-  Serial.println("Steup Start");
+  Serial.println("Steup Start!!!!!");
   delay(500);
-
-  return;
 
 #ifdef GIT_VERSION
   Serial.print("Version: ");
@@ -78,6 +76,9 @@ void setup()
 
   initStore();
   initButton();
+
+  Serial.println("SSID: " + String(WIFI_SSID));
+  Serial.println("PASS: " + String(WIFI_PASS));
 
 #if defined(WIFI_SSID) && defined(WIFI_PASS)
   // For debugging

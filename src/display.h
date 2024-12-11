@@ -1,7 +1,9 @@
 #ifndef _DISPLAY_H_
 #define _DISPLAY_H_
 
-#include "display_driver.h"
+#ifdef E_INK_750
+#include "display_750_driver.h"
+#endif
 
 DisplayDriver display = DisplayDriver();
 

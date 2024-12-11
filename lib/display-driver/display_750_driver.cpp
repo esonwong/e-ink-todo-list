@@ -1,4 +1,4 @@
-#include "display_driver.h"
+#include "display_750_driver.h"
 
 #define EPD_SCK_PIN 14
 #define EPD_MOSI_PIN 13
@@ -78,8 +78,6 @@ void DisplayDriver::drawPixel(uint16_t x, uint16_t y, DisplayColor color)
     if (x > width || y > height)
         return; // 超出屏幕范围，直接返回
 
-    uint16_t pageBitLength = pageByteLength * 8;
-
     uint16_t pageStartY = height * currentSendingPage / pages;
     uint16_t pageEndY = pageStartY + height / pages;
 
@@ -126,7 +124,7 @@ void DisplayDriver::refresh()
     state = DISPLAY_DRIVER_IDLE;
 }
 
-void DisplayDriver::display(const std::function<void(DisplayDriver &)> drawFunction)
+void DisplayDriver::display(const std::function<void(BaseDisplayDriver &)> drawFunction)
 {
     printf("display\r\n");
 
@@ -136,7 +134,7 @@ void DisplayDriver::display(const std::function<void(DisplayDriver &)> drawFunct
     refresh();
 }
 
-void DisplayDriver::sendDisplayDataWithColor(const std::function<void(DisplayDriver &)> drawFunction, DisplayColor color)
+void DisplayDriver::sendDisplayDataWithColor(const std::function<void(BaseDisplayDriver &)> drawFunction, DisplayColor color)
 {
     printf("displayByColor\r\n");
 
@@ -170,7 +168,7 @@ void DisplayDriver::sendDisplayDataWithColor(const std::function<void(DisplayDri
 
 void DisplayDriver::testDisplay()
 {
-    display([](DisplayDriver &displayDriver)
+    display([](BaseDisplayDriver &displayDriver)
             {
                 displayDriver.drawPixel(1, 1, DISPLAY_COLOR_BLACK);
 
