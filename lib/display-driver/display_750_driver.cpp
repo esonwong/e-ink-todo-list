@@ -48,15 +48,16 @@ parameter:
 ******************************************************************************/
 void EPD_7IN5B_V2_Wait_Until_Idle(void)
 {
+    Serial.println("Wait utill e-Paper busy release");
     int busy = 0;
     while (true)
     {
         delay(100);
         busy = digitalRead(EPD_BUSY_PIN);
-        if (busy == 0)
+        if (busy == 1)
             break;
     }
-    Serial.println("e-Paper busy release");
+    Serial.println("e-Paper busy released");
 }
 
 /******************************************************************************
@@ -77,7 +78,7 @@ DisplayDriver750::DisplayDriver750()
 {
 
     Serial.println("DisplayDriver constructor: 750");
-    initialize();
+    // initialize();
 }
 
 DisplayDriver750::~DisplayDriver750()

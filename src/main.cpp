@@ -20,6 +20,7 @@ void loop()
     delay(1000);
     showLaunchScreen();
     delay(1000);
+
     Serial.println("Loop End!!!!!");
     delay(1000);
 }
