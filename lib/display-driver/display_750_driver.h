@@ -22,6 +22,7 @@ public:
     static const int pages = 8;    // Number of pages in the display.
 
 protected:
+    int currentSendingPage = 0;
     void sendDisplayDataWithColor(const std::function<void(BaseDisplayDriver &)> drawFunction, DisplayColor color) override;
     void refresh() override;
     void sendPageData() override;

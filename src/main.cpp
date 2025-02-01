@@ -12,6 +12,7 @@ void setup()
     Serial.println("Steup Start!!!!!");
     delay(2000);
     initDisplay();
+    display.testDisplay();
 }
 
 void loop()

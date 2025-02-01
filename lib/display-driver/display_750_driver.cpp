@@ -78,6 +78,7 @@ DisplayDriver750::DisplayDriver750()
 {
 
     Serial.println("DisplayDriver constructor: 750");
+    pageByteLength = (width * (height / pages)) / 8;
     // initialize();
 }
 
@@ -257,22 +258,21 @@ void DisplayDriver750::testDisplay()
 
                 displayDriver.drawRectangle(100, 100, 700, 380, DISPLAY_COLOR_RED);
 
-                // displayDriver.drawRectangle(10, 10, 20, 790, DISPLAY_COLOR_BLACK);
+                displayDriver.drawRectangle(10, 10, 20, 790, DISPLAY_COLOR_BLACK);
 
-                // // 一行 10x10 的黑色方块, 间隔 10
-                // for (int i = 0; i < 80; i++)
-                // {
-                //   displayDriver.drawRectangle(10 + i * 20, 10, 20 + i * 20, 20, DISPLAY_COLOR_BLACK);
-                // }
+                // 一行 10x10 的黑色方块, 间隔 10
+                for (int i = 0; i < 80; i++)
+                {
+                  displayDriver.drawRectangle(10 + i * 20, 10, 20 + i * 20, 20, DISPLAY_COLOR_BLACK);
+                }
 
-                // // 一列 20x20 的黑色方块, 间隔 30
-                // for (int i = 0; i < 24; i++)
-                // {
-                //   displayDriver.drawRectangle(10, 30 + i * 30, 30, 50 + i * 30, DISPLAY_COLOR_BLACK);
-                // }
+                // 一列 20x20 的黑色方块, 间隔 30
+                for (int i = 0; i < 24; i++)
+                {
+                  displayDriver.drawRectangle(10, 30 + i * 30, 30, 50 + i * 30, DISPLAY_COLOR_BLACK);
+                }
 
-                // displayDriver.drawRectangle(100, 100, 200, 200, DISPLAY_COLOR_BLACK);
-            });
+                displayDriver.drawRectangle(100, 100, 200, 200, DISPLAY_COLOR_BLACK); });
 }
 
 void DisplayDriver750::sendPageData()
