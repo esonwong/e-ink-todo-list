@@ -264,26 +264,26 @@ void DisplayDriver750::drawRectangle(uint16_t x1, uint16_t y1, uint16_t x2, uint
 
 void DisplayDriver750::refresh()
 {
-  printf("refresh\r\n");
-
+  Serial.println("Refresh display");
   EPD_7IN5B_V2_SendCommand(0x12); // DISPLAY REFRESH
-  // DEV_Delay_ms(100);
-
+  delay(100);                     // !!!The delay here is necessary, 200uS at least!!!
   EPD_7IN5B_V2_Wait_Until_Idle(); // waiting for the electronic paper IC to release the idle signal
 
   state = DISPLAY_DRIVER_IDLE;
-
-  // sleep();
 }
 
 void DisplayDriver750::display(const std::function<void(BaseDisplayDriver &)> drawFunction)
 {
+
+  initialize();
   state = DISPLAY_DRIVER_DRAWING;
 
   sendDisplayDataWithColor(drawFunction, DISPLAY_COLOR_BLACK);
   sendDisplayDataWithColor(drawFunction, DISPLAY_COLOR_RED);
 
   refresh();
+
+  sleep();
 }
 
 void DisplayDriver750::sendDisplayDataWithColor(const std::function<void(BaseDisplayDriver &)> drawFunction, DisplayColor color)
@@ -305,7 +305,7 @@ void DisplayDriver750::sendDisplayDataWithColor(const std::function<void(BaseDis
 
   for (currentSendingPage = 0; currentSendingPage < pages; currentSendingPage++)
   {
-    printf("currentSendingPage: %d\r\n", currentSendingPage);
+    // printf("currentSendingPage: %d\r\n", currentSendingPage);
 
     switch (currentSendingColor)
     {
@@ -363,6 +363,8 @@ void DisplayDriver750::sleep()
   EPD_7IN5B_V2_SendCommand(0X02); // power off
 
   EPD_7IN5B_V2_Wait_Until_Idle(); // waiting for the electronic paper IC to release the idle signal
+
+  delay(500);
 
   EPD_7IN5B_V2_SendCommand(0X07); // deep sleep
   EPD_7IN5B_V2_SendData(0xA5);
