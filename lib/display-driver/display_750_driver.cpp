@@ -1,5 +1,7 @@
 #include "display_750_driver.h"
 #include "utility/EPD_7in5b_V2.h"
+#include "Adafruit_GFX.h"
+#include "fonts.h"
 
 #define EPD_SCK_PIN 14
 #define EPD_MOSI_PIN 13
@@ -249,6 +251,47 @@ void DisplayDriver750::sendDisplayDataWithColor(const std::function<void(BaseDis
         sendPageData();
 
         // No need to manually free memory, vector will handle it
+    }
+}
+
+// 绘制单个字符
+void DisplayDriver750::drawChar(uint16_t x, uint16_t y, char c, const GFXfont *font, DisplayColor color)
+{
+    if (font == nullptr)
+    {
+        // No font provided, return
+        return;
+    }
+
+    // Get the character's glyph from the font
+    if (c < font->first || c > font->last)
+    {
+        // Character is not in the font, return
+        return;
+    }
+
+    GFXglyph *glyph = &font->glyph[c - font->first];
+    uint8_t *bitmap = font->bitmap;
+
+    uint16_t bo = glyph->bitmapOffset;
+    uint8_t w = glyph->width, h = glyph->height;
+    int8_t xo = glyph->xOffset, yo = glyph->yOffset;
+    uint8_t xx, yy, bits = 0, bit = 0;
+
+    for (yy = 0; yy < h; yy++)
+    {
+        for (xx = 0; xx < w; xx++)
+        {
+            if (!(bit++ & 7))
+            {
+                bits = bitmap[bo++];
+            }
+            if (bits & 0x80)
+            {
+                drawPixel(x + xo + xx, y + yo + yy, color);
+            }
+            bits <<= 1;
+        }
     }
 }
 
