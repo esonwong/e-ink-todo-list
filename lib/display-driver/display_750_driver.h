@@ -11,12 +11,13 @@ public:
     ~DisplayDriver750();
 
     void initialize() override;
+    void drawString(uint16_t x, uint16_t y, const char *text, sFONT *font, DisplayColor color);
+    void drawChar(uint16_t x, uint16_t y, char c, sFONT *font, DisplayColor color);
     void clear() override;
     void drawPixel(uint16_t x, uint16_t y, DisplayColor color) override;
     void drawRectangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, DisplayColor color) override;
     void display(const std::function<void(BaseDisplayDriver &)> drawFunction) override;
     void process() override;
-    void drawChar(uint16_t x, uint16_t y, char c, DisplayColor color);
     void testDisplay() override;
     static const int width = 800;  // Width of the display.
     static const int height = 480; // Height of the display.

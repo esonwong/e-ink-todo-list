@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <vector>
 #include <functional>
+#include "fonts.h"
 
 // state of the display
 enum DisplayState
@@ -67,6 +68,9 @@ public:
      */
     virtual void process() = 0;
     virtual void testDisplay() = 0;
+
+    virtual void drawChar(uint16_t x, uint16_t y, char c, sFONT *font, DisplayColor color) = 0;
+    virtual void drawString(uint16_t x, uint16_t y, const char *text, sFONT *font, DisplayColor color) = 0;
 
     static const int width;  // Width of the display.
     static const int height; // Height of the display.
