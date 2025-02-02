@@ -15,7 +15,7 @@ void setClock()
   Serial.println("Waiting for time");
   time_t nowSecs = time(nullptr);
   int i = 0;
-  while (nowSecs < 8 * 3600 * 2 && i++ < 10)
+  while (nowSecs < 8 * 3600 * 2 && i++ < 100)
   {
     delay(1000);
     Serial.print(".");
