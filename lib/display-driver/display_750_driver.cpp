@@ -351,3 +351,14 @@ void DisplayDriver750::sendPageData()
 void DisplayDriver750::process()
 {
 }
+
+void DisplayDriver750::sleep()
+{
+
+  EPD_7IN5B_V2_SendCommand(0X02); // power off
+
+  EPD_7IN5B_V2_Wait_Until_Idle(); // waiting for the electronic paper IC to release the idle signal
+
+  EPD_7IN5B_V2_SendCommand(0X07); // deep sleep
+  EPD_7IN5B_V2_SendData(0xA5);
+}

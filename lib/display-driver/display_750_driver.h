@@ -18,6 +18,7 @@ public:
     void drawRectangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, DisplayColor color) override;
     void display(const std::function<void(BaseDisplayDriver &)> drawFunction) override;
     void process() override;
+    void sleep();
     void testDisplay() override;
     static const int width = 800;  // Width of the display.
     static const int height = 480; // Height of the display.
