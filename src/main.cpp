@@ -14,11 +14,11 @@ void setup()
 {
 
   Serial.begin(115200);
-  delay(3000);
+  delay(2000);
   // Serial.setDebugOutput(true);
   Serial.println();
   Serial.println("Steup Start!!!!!");
-  delay(500);
+  // delay(500);
   initDisplay();
 
 #ifdef GIT_VERSION
@@ -79,9 +79,6 @@ void setup()
   initStore();
   initButton();
 
-  Serial.println("SSID: " + String(WIFI_SSID));
-  Serial.println("PASS: " + String(WIFI_PASS));
-
 #if defined(WIFI_SSID) && defined(WIFI_PASS)
   // For debugging
   Serial.print("WiFi SSID: ");
@@ -89,12 +86,12 @@ void setup()
   Serial.print("WiFi Password: ");
   Serial.println(WIFI_PASS);
   wifiManager.preloadWiFi(WIFI_SSID, WIFI_PASS);
-#endif
+#endif // WIFI_SSID && WIFI_PASS
 
   if (initWifiWithManager())
   {
     setClock();
-    showTextOnScreenCenter("Network Connected");
+    // showTextOnScreenCenter("Network Connected");
   }
 
 #ifdef ENABLE_PCB_TEST

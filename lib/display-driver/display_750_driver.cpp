@@ -272,6 +272,8 @@ void DisplayDriver750::refresh()
   EPD_7IN5B_V2_Wait_Until_Idle(); // waiting for the electronic paper IC to release the idle signal
 
   state = DISPLAY_DRIVER_IDLE;
+
+  // sleep();
 }
 
 void DisplayDriver750::display(const std::function<void(BaseDisplayDriver &)> drawFunction)
@@ -355,6 +357,8 @@ void DisplayDriver750::process()
 
 void DisplayDriver750::sleep()
 {
+
+  Serial.println("Sleep display");
 
   EPD_7IN5B_V2_SendCommand(0X02); // power off
 
