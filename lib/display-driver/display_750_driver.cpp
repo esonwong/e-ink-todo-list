@@ -149,6 +149,9 @@ void DisplayDriver750::clear()
 
 void DisplayDriver750::drawPixel(uint16_t x, uint16_t y, DisplayColor color)
 {
+    if (color != currentSendingColor)
+        return; // 不是当前发送的颜色，直接返回
+
     if (x > width || y > height)
         return; // 超出屏幕范围，直接返回
 
@@ -203,23 +206,23 @@ void DisplayDriver750::display(const std::function<void(BaseDisplayDriver &)> dr
     printf("display\r\n");
 
     sendDisplayDataWithColor(drawFunction, DISPLAY_COLOR_BLACK);
-    // sendDisplayDataWithColor(drawFunction, DISPLAY_COLOR_RED);
+    sendDisplayDataWithColor(drawFunction, DISPLAY_COLOR_RED);
 
     refresh();
 }
 
 void DisplayDriver750::sendDisplayDataWithColor(const std::function<void(BaseDisplayDriver &)> drawFunction, DisplayColor color)
 {
-    printf("displayByColor\r\n");
-
     if (color == DISPLAY_COLOR_BLACK)
     {
+        Serial.println("Send black data");
         // Send black data
         EPD_7IN5B_V2_SendCommand(0x10);
         currentSendingColor = DISPLAY_COLOR_BLACK;
     }
     else
     {
+        Serial.println("Send red data");
         // Send Red data
         EPD_7IN5B_V2_SendCommand(0x13);
         currentSendingColor = DISPLAY_COLOR_RED;
@@ -228,7 +231,16 @@ void DisplayDriver750::sendDisplayDataWithColor(const std::function<void(BaseDis
     for (currentSendingPage = 0; currentSendingPage < pages; currentSendingPage++)
     {
         printf("currentSendingPage: %d\r\n", currentSendingPage);
-        currentPageData.assign(pageByteLength, 0xFF); // fill with white
+
+        switch (currentSendingColor)
+        {
+        case DISPLAY_COLOR_BLACK:
+            currentPageData.assign(pageByteLength, 0xFF); // fill with white
+            break;
+        default:
+            currentPageData.assign(pageByteLength, 0x00); // fill with black
+            break;
+        }
 
         // draw on the page
         drawFunction(*this);
@@ -258,7 +270,7 @@ void DisplayDriver750::testDisplay()
 
                 displayDriver.drawRectangle(100, 100, 700, 380, DISPLAY_COLOR_RED);
 
-                displayDriver.drawRectangle(10, 10, 20, 790, DISPLAY_COLOR_BLACK);
+                displayDriver.drawRectangle(10, 10, 20, 790, DISPLAY_COLOR_RED);
 
                 // 一行 10x10 的黑色方块, 间隔 10
                 for (int i = 0; i < 80; i++)
