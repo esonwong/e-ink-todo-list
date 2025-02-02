@@ -1,4 +1,5 @@
 #pragma once
+#include "base_display_driver.h"
 
 #ifdef E_INK_750
 #include "display_750_driver.h"
@@ -21,58 +22,40 @@ void initDisplay()
 
 void showLaunchScreen()
 {
-  //   initDisplay();
-  //   do
-  //   {
-  //     display.fillScreen(GxEPD_WHITE);
-  //     display.setCursor(0, 0);
-  //     int16_t x, y;
-  //     uint16_t w1, w2, h1, h2;
-  //     const char *name = "E-Ink Todo List";
-  //     const char *author = "by @Eson";
 
-  // #ifdef DEBUG
-  //     display.setTextSize(1);
-  //     display.setCursor(400, 400);
-  //     display.println("DEBUG: width=" + String(display.width()) + ", height=" + String(display.height()));
+  display.display([](BaseDisplayDriver &displayDriver)
+                  {
+                    uint16_t x, y;
+                    uint16_t nameW, nameH, authorW, authorH;
+                    const char *name = "E-Ink Todo List";
+                    const char *author = "by @Eson";
 
-  //     // draw a rectangle
-  //     display.drawRect(40, 320, display.width() - 80, display.height() - 80, GxEPD_BLACK);
-  // #endif
+                    displayDriver.getStringBounds(name, &Font24, &x, &y, &nameW, &nameH);
+                    displayDriver.getStringBounds(author, &Font20, &x, &y, &authorW, &authorH);
 
-  //     display.setTextSize(3);
-  //     display.getTextBounds(name, 0, 0, &x, &y, &w1, &h1);
-  //     display.setCursor((display.width() - w1) / 2, display.height() / 2 - h1);
-  //     display.println(name);
-  //     display.setTextSize(2);
-  //     display.getTextBounds(author, 0, 0, &x, &y, &w2, &h2);
-  //     display.setCursor((display.width() - w2) / 2, display.height() / 2 + h1 / 2);
-  //     display.println(author);
-  // #ifdef GIT_VERSION
-  //     uint16_t w3, h3;
-  //     display.setTextSize(2);
-  //     display.getTextBounds(GIT_VERSION, 0, 0, &x, &y, &w3, &h3);
-  //     display.setCursor((display.width() - w3) / 2, display.height() - h3 - 10);
-  //     display.println(GIT_VERSION);
-  // #endif
+                    displayDriver.drawString((displayDriver.width - nameW) / 2, displayDriver.height / 2 - nameH - 80, name, &Font24, DISPLAY_COLOR_BLACK);
+                    displayDriver.drawString((displayDriver.width - authorW) / 2, displayDriver.height / 2 + nameH / 2 - 80, author, &Font20, DISPLAY_COLOR_BLACK);
 
-  //   } while (display.nextPage());
+#ifdef GIT_VERSION
+                    const char *version = GIT_VERSION;
+                    uint16_t versionW, versionH;
+
+                    displayDriver.getStringBounds(version, &Font12, &x, &y, &versionW, &versionH);
+                    displayDriver.drawString((displayDriver.width - versionW) / 2, displayDriver.height - versionH - 10, version, &Font12, DISPLAY_COLOR_BLACK);
+#endif
+                  });
 }
 
-void showTextOnScreenCenter(const char *text, uint8_t textSize = 2)
+void showTextOnScreenCenter(const char *text, sFONT $font = Font24)
 {
-  // initDisplay();
-  // display.fillScreen(GxEPD_WHITE);
-  // display.setCursor(0, 0);
-  // int16_t x, y;
-  // uint16_t w, h;
-  // do
-  // {
-  //   display.setTextSize(textSize);
-  //   display.getTextBounds(text, 0, 0, &x, &y, &w, &h);
-  //   display.setCursor((display.width() - w) / 2, (display.height() - h) / 2);
-  //   display.println(text);
-  // } while (display.nextPage());
+  display.display([text](BaseDisplayDriver &displayDriver)
+                  {
+                    uint16_t x, y;
+                    uint16_t textW, textH;
+
+                    displayDriver.getStringBounds(text, &Font24, &x, &y, &textW, &textH);
+
+                    displayDriver.drawString((displayDriver.width - textW) / 2, (displayDriver.height - textH) / 2, text, &Font24, DISPLAY_COLOR_BLACK); });
 }
 
 void showTextOnScreenCenter(String text, uint8_t textSize = 2)

@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "base_display_driver.h"
@@ -20,9 +19,10 @@ public:
     void process() override;
     void sleep();
     void testDisplay() override;
-    static const int width = 800;  // Width of the display.
-    static const int height = 480; // Height of the display.
-    static const int pages = 8;    // Number of pages in the display.
+    void getStringBounds(const char *text, sFONT *font, uint16_t *x, uint16_t *y, uint16_t *w, uint16_t *h) override;
+    static const uint16_t width = 800;  // Width of the display.
+    static const uint16_t height = 480; // Height of the display.
+    static const int pages = 8;         // Number of pages in the display.
 
 protected:
     int currentSendingPage = 0;

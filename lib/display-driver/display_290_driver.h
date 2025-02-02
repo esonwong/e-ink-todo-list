@@ -15,9 +15,9 @@ public:
     void display(const std::function<void(BaseDisplayDriver &)> drawFunction) override;
     void process() override;
     void testDisplay() override;
-    static const int width = 296;  // Width of the display.
-    static const int height = 128; // Height of the display.
-    static const int pages = 4;    // Number of pages in the display.
+    static const uint16_t width = 296;  // Width of the display.
+    static const uint16_t height = 128; // Height of the display.
+    static const int pages = 4;         // Number of pages in the display.
 
 private:
     int currentSendingPage = 0;

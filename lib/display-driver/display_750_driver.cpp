@@ -75,6 +75,9 @@ static void EPD_7IN5B_V2_Reset(void)
   DEV_Delay_ms(200);
 }
 
+const uint16_t BaseDisplayDriver::width = 800;
+const uint16_t BaseDisplayDriver::height = 480;
+
 DisplayDriver750::DisplayDriver750()
 {
 
@@ -265,12 +268,15 @@ void DisplayDriver750::refresh()
 
   EPD_7IN5B_V2_SendCommand(0x12); // DISPLAY REFRESH
   // DEV_Delay_ms(100);
+
+  EPD_7IN5B_V2_Wait_Until_Idle(); // waiting for the electronic paper IC to release the idle signal
+
   state = DISPLAY_DRIVER_IDLE;
 }
 
 void DisplayDriver750::display(const std::function<void(BaseDisplayDriver &)> drawFunction)
 {
-  printf("display\r\n");
+  state = DISPLAY_DRIVER_DRAWING;
 
   sendDisplayDataWithColor(drawFunction, DISPLAY_COLOR_BLACK);
   sendDisplayDataWithColor(drawFunction, DISPLAY_COLOR_RED);
@@ -327,16 +333,11 @@ void DisplayDriver750::testDisplay()
             // displayDriver.drawPixel(1, 1, DISPLAY_COLOR_BLACK);
 
             displayDriver.drawRectangle(10, 10, 30, 20, DISPLAY_COLOR_BLACK);
-
-  displayDriver.drawRectangle(10, 30, 300, 50, DISPLAY_COLOR_RED);
-
-  displayDriver.drawChar(150, 150, 'A', &Font24, DISPLAY_COLOR_BLACK);
-
-  displayDriver.drawChar(150 + Font24.Width, 150, 'B', &Font24, DISPLAY_COLOR_RED);
-
-  displayDriver.drawString(10, 100, "Hello, World!", &Font24, DISPLAY_COLOR_BLACK);
-
-  displayDriver.drawString(10, 200, "Hello, World!", &Font24, DISPLAY_COLOR_RED); });
+            displayDriver.drawRectangle(10, 30, 300, 50, DISPLAY_COLOR_RED);
+            displayDriver.drawChar(150, 150, 'A', &Font24, DISPLAY_COLOR_BLACK);
+            displayDriver.drawChar(150 + Font24.Width, 150, 'B', &Font24, DISPLAY_COLOR_RED);
+            displayDriver.drawString(10, 100, "Hello, World!", &Font24, DISPLAY_COLOR_BLACK);
+            displayDriver.drawString(10, 200, "Hello, World!", &Font24, DISPLAY_COLOR_RED); });
 }
 
 void DisplayDriver750::sendPageData()
@@ -361,4 +362,14 @@ void DisplayDriver750::sleep()
 
   EPD_7IN5B_V2_SendCommand(0X07); // deep sleep
   EPD_7IN5B_V2_SendData(0xA5);
+}
+
+void DisplayDriver750::getStringBounds(const char *text, sFONT *font, uint16_t *x, uint16_t *y, uint16_t *w, uint16_t *h)
+{
+  if (text == nullptr || font == nullptr)
+    return;
+
+  size_t length = strlen(text);
+  *w = length * font->Width; // 字符串总宽度 = 字符数 × 单个字符宽度
+  *h = font->Height;         // 高度就是字体高度
 }

@@ -71,10 +71,11 @@ public:
 
     virtual void drawChar(uint16_t x, uint16_t y, char c, sFONT *font, DisplayColor color) = 0;
     virtual void drawString(uint16_t x, uint16_t y, const char *text, sFONT *font, DisplayColor color) = 0;
+    virtual void getStringBounds(const char *text, sFONT *font, uint16_t *x, uint16_t *y, uint16_t *w, uint16_t *h) = 0;
 
-    static const int width;  // Width of the display.
-    static const int height; // Height of the display.
-    static const int pages;  // Number of pages in the display buffer.
+    static const uint16_t width;  // Width of the display.
+    static const uint16_t height; // Height of the display.
+    static const int pages;       // Number of pages in the display buffer.
 
 protected:
     std::vector<uint8_t> currentPageData;
