@@ -1,16 +1,5 @@
 #include "display_750_driver.h"
 #include "fonts.h"
-#include <SPI.h>
-
-/**
- * data
- **/
-#define UBYTE uint8_t
-#define UWORD uint16_t
-#define UDOUBLE uint32_t
-
-#define GPIO_PIN_SET 1
-#define GPIO_PIN_RESET 0
 
 #define EPD_SCK_PIN 14
 #define EPD_MOSI_PIN 13
@@ -18,106 +7,6 @@
 #define EPD_RST_PIN 2
 #define EPD_DC_PIN 4
 #define EPD_BUSY_PIN 5 // 0:busy, 1: idle
-
-#define DEV_Digital_Write(_pin, _value) digitalWrite(_pin, _value == 0 ? LOW : HIGH)
-
-/******************************************************************************
-function:
-            SPI read and write
-******************************************************************************/
-void DEV_SPI_WriteByte(UBYTE data)
-{
-  // SPI.beginTransaction(spi_settings);
-  digitalWrite(EPD_CS_PIN, GPIO_PIN_RESET);
-
-  for (int i = 0; i < 8; i++)
-  {
-    if ((data & 0x80) == 0)
-      digitalWrite(EPD_MOSI_PIN, GPIO_PIN_RESET);
-    else
-      digitalWrite(EPD_MOSI_PIN, GPIO_PIN_SET);
-
-    data <<= 1;
-    digitalWrite(EPD_SCK_PIN, GPIO_PIN_SET);
-    digitalWrite(EPD_SCK_PIN, GPIO_PIN_RESET);
-  }
-
-  // SPI.transfer(data);
-  digitalWrite(EPD_CS_PIN, GPIO_PIN_SET);
-  // SPI.endTransaction();
-}
-
-// /******************************************************************************
-// function :	send command
-// parameter:
-//      Reg : Command register
-// ******************************************************************************/
-static void EPD_7IN5B_V2_SendCommand(UBYTE Reg)
-{
-  digitalWrite(EPD_DC_PIN, 0);
-  digitalWrite(EPD_CS_PIN, 0);
-  DEV_SPI_WriteByte(Reg);
-  digitalWrite(EPD_CS_PIN, 1);
-}
-
-// /******************************************************************************
-// function :	send data
-// parameter:
-//     Data : Write data
-// ******************************************************************************/
-static void EPD_7IN5B_V2_SendData(UBYTE Data)
-{
-  digitalWrite(EPD_DC_PIN, 1);
-  digitalWrite(EPD_CS_PIN, 0);
-  DEV_SPI_WriteByte(Data);
-  digitalWrite(EPD_CS_PIN, 1);
-}
-
-void DEV_SPI_Write_nByte(UBYTE *pData, UDOUBLE len)
-{
-  for (int i = 0; i < len; i++)
-    DEV_SPI_WriteByte(pData[i]);
-}
-
-static void EPD_7IN5B_V2_SendData2(UBYTE *pData, UDOUBLE len)
-{
-  digitalWrite(EPD_DC_PIN, 1);
-  digitalWrite(EPD_CS_PIN, 0);
-  DEV_SPI_Write_nByte(pData, len);
-  digitalWrite(EPD_CS_PIN, 1);
-}
-
-/******************************************************************************
-function :	Wait until the busy_pin goes LOW
-parameter:
-******************************************************************************/
-void EPD_7IN5B_V2_Wait_Until_Idle(void)
-{
-  Serial.println("Wait utill e-Paper busy release");
-  int busy = 0;
-  while (true)
-  {
-    delay(100);
-    busy = digitalRead(EPD_BUSY_PIN);
-    if (busy == 1)
-      break;
-  }
-  Serial.println("e-Paper busy released");
-}
-
-/******************************************************************************
-function :	Software reset
-parameter:
-******************************************************************************/
-// static void EPD_7IN5B_V2_Reset(void)
-// {
-//   DEV_Digital_Write(EPD_RST_PIN, 1);
-//   delay(200);
-//   DEV_Digital_Write(EPD_RST_PIN, 0);
-//   delay(2);
-//   DEV_Digital_Write(EPD_RST_PIN, 1);
-//   delay(200);
-// }
 
 const uint16_t BaseDisplayDriver::width = 800;
 const uint16_t BaseDisplayDriver::height = 480;
@@ -145,14 +34,86 @@ void DisplayDriver750::rest()
   delay(200);
 }
 
+void DisplayDriver750::spiWriteByte(uint8_t data)
+{
+  SPI.beginTransaction(spiSettings);
+  // digitalWrite(EPD_CS_PIN, LOW);
+
+  // for (int i = 0; i < 8; i++)
+  // {
+  //   if ((data & 0x80) == 0)
+  //     digitalWrite(EPD_MOSI_PIN, LOW);
+  //   else
+  //     digitalWrite(EPD_MOSI_PIN, HIGH);
+
+  //   data <<= 1;
+  //   digitalWrite(EPD_SCK_PIN, HIGH);
+  //   digitalWrite(EPD_SCK_PIN, LOW);
+  // }
+
+  SPI.transfer(data);
+  // digitalWrite(EPD_CS_PIN, HIGH);
+  SPI.endTransaction();
+}
+
+void DisplayDriver750::spiWriteBytes(uint8_t *pData, uint32_t len)
+{
+  for (int i = 0; i < len; i++)
+    spiWriteByte(pData[i]);
+}
+
+// /******************************************************************************
+// function :	send command
+// parameter:
+//      command : Command register
+// ******************************************************************************/
+void DisplayDriver750::sendCommand(uint8_t command)
+{
+  digitalWrite(EPD_DC_PIN, LOW);
+  digitalWrite(EPD_CS_PIN, LOW);
+  spiWriteByte(command);
+  digitalWrite(EPD_CS_PIN, HIGH);
+
+  // SPI.beginTransaction(spiSettings);
+  // digitalWrite(EPD_DC_PIN, LOW); // 命令模式
+  // digitalWrite(EPD_CS_PIN, LOW);
+  // SPI.transfer(command);
+  // digitalWrite(EPD_CS_PIN, HIGH);
+  // digitalWrite(EPD_DC_PIN, HIGH);
+  // SPI.endTransaction();
+}
+
+void DisplayDriver750::sendData(uint8_t data)
+{
+  digitalWrite(EPD_DC_PIN, HIGH);
+  digitalWrite(EPD_CS_PIN, LOW);
+  spiWriteByte(data);
+  digitalWrite(EPD_CS_PIN, HIGH);
+
+  // SPI.beginTransaction(spiSettings);
+  // digitalWrite(EPD_CS_PIN, LOW);
+  // digitalWrite(EPD_DC_PIN, HIGH); // 数据模式
+  // SPI.transfer(data);
+  // digitalWrite(EPD_CS_PIN, HIGH);
+  // SPI.endTransaction();
+}
+
+void DisplayDriver750::sendDataWithLen(uint8_t *pData, uint32_t len)
+{
+  digitalWrite(EPD_DC_PIN, 1);
+  digitalWrite(EPD_CS_PIN, 0);
+  spiWriteBytes(pData, len);
+  digitalWrite(EPD_CS_PIN, 1);
+}
+
 void DisplayDriver750::initialize()
 {
 
   Serial.println("Initializing display 750...");
 
-  pinMode(EPD_BUSY_PIN, INPUT);
-  pinMode(EPD_RST_PIN, OUTPUT);
-  pinMode(EPD_DC_PIN, OUTPUT);
+  pinMode(EPD_BUSY_PIN, INPUT); // BUSY PIN
+  pinMode(EPD_RST_PIN, OUTPUT); // RST PIN
+  pinMode(EPD_DC_PIN, OUTPUT);  // DC PIN
 
   // Configure SPI
   // pinMode(EPD_SCK_PIN, OUTPUT);
@@ -161,45 +122,47 @@ void DisplayDriver750::initialize()
   // digitalWrite(EPD_CS_PIN, HIGH);
   // digitalWrite(EPD_SCK_PIN, LOW);
 
+  // spi
+  SPI.setDataMode(SPI_MODE0);
+  SPI.setBitOrder(MSBFIRST);
+  SPI.setClockDivider(SPI_CLOCK_DIV4);
   SPI.begin();
-
-  // EPD_7IN5B_V2_Init();
 
   rest();
 
-  EPD_7IN5B_V2_SendCommand(0x01); // POWER SETTING
-  EPD_7IN5B_V2_SendData(0x07);
-  EPD_7IN5B_V2_SendData(0x17);
-  EPD_7IN5B_V2_SendData(0x3f);
-  EPD_7IN5B_V2_SendData(0x3f);
+  sendCommand(0x01); // POWER SETTING
+  sendData(0x07);
+  sendData(0x17);
+  sendData(0x3f);
+  sendData(0x3f);
 
-  EPD_7IN5B_V2_SendCommand(0x04); // POWER ON
+  sendCommand(0x04); // POWER ON
   delay(100);
 
-  EPD_7IN5B_V2_Wait_Until_Idle(); // waiting for the electronic paper IC to release the idle signal
+  waitUntilIdle(); // waiting for the electronic paper IC to release the idle signal
 
-  EPD_7IN5B_V2_SendCommand(0X00); // PANNEL SETTING
+  sendCommand(0X00); // PANNEL SETTING
   // KW-3f
   // KWR-2F
   // BWROTP 0f
   // BWOTP 1f
-  EPD_7IN5B_V2_SendData(0x0F);
+  sendData(0x0F);
 
-  EPD_7IN5B_V2_SendCommand(0x61); // Resolution setting
-  EPD_7IN5B_V2_SendData(0x03);    // source 800
-  EPD_7IN5B_V2_SendData(0x20);
-  EPD_7IN5B_V2_SendData(0x01); // gate 480
-  EPD_7IN5B_V2_SendData(0xE0);
+  sendCommand(0x61); // Resolution setting
+  sendData(0x03);    // source 800
+  sendData(0x20);
+  sendData(0x01); // gate 480
+  sendData(0xE0);
 
-  EPD_7IN5B_V2_SendCommand(0X15); // Dual SPI mode
-  EPD_7IN5B_V2_SendData(0x00);
+  sendCommand(0X15); // Dual SPI mode
+  sendData(0x00);
 
-  EPD_7IN5B_V2_SendCommand(0X60); // TCON SETTING
-  EPD_7IN5B_V2_SendData(0x22);
+  sendCommand(0X60); // TCON SETTING
+  sendData(0x22);
 
-  EPD_7IN5B_V2_SendCommand(0X50); // VCOM AND DATA INTERVAL SETTING
-  EPD_7IN5B_V2_SendData(0x11);    // 黑边框
-  EPD_7IN5B_V2_SendData(0x07);    // 数据间隔设置保持不变
+  sendCommand(0X50); // VCOM AND DATA INTERVAL SETTING
+  sendData(0x11);    //
+  sendData(0x07);    // 数据间隔设置保持不变
 }
 
 void DisplayDriver750::drawString(uint16_t x, uint16_t y, const char *text, sFONT *font, DisplayColor color)
@@ -217,7 +180,7 @@ void DisplayDriver750::drawString(uint16_t x, uint16_t y, const char *text, sFON
 
 void DisplayDriver750::drawChar(uint16_t x, uint16_t y, char c, sFONT *font, DisplayColor color)
 {
-  UWORD Line, Column;                                  // 行和列
+  u_int16_t Line, Column;                              // 行和列
   DisplayColor Color_Background = DISPLAY_COLOR_WHITE; // 背景色
   DisplayColor Color_Foreground = color;               // 前景色
 
@@ -263,21 +226,21 @@ void DisplayDriver750::drawChar(uint16_t x, uint16_t y, char c, sFONT *font, Dis
 
 void DisplayDriver750::clear()
 {
-  UWORD Width, Height;
+  uint16_t Width, Height;
   Width = (width % 8 == 0) ? (width / 8) : (width / 8 + 1);
   Height = height;
 
-  UBYTE image[width / 8] = {0x00};
+  u_int8_t image[width / 8] = {0x00};
 
-  UWORD i;
+  uint16_t i;
   for (i = 0; i < Width; i++)
   {
     image[i] = 0xff;
   }
-  EPD_7IN5B_V2_SendCommand(0x10);
+  sendCommand(0x10);
   for (i = 0; i < Height; i++)
   {
-    EPD_7IN5B_V2_SendData2(image, Width);
+    sendDataWithLen(image, Width);
     delay(1);
   }
 
@@ -285,10 +248,10 @@ void DisplayDriver750::clear()
   {
     image[i] = 0x00;
   }
-  EPD_7IN5B_V2_SendCommand(0x13);
+  sendCommand(0x13);
   for (i = 0; i < Height; i++)
   {
-    EPD_7IN5B_V2_SendData2(image, Width);
+    sendDataWithLen(image, Width);
     delay(1);
   }
   refresh();
@@ -347,12 +310,26 @@ void DisplayDriver750::drawRectangle(uint16_t x1, uint16_t y1, uint16_t x2, uint
   }
 }
 
+void DisplayDriver750::waitUntilIdle()
+{
+  Serial.println("Wait utill e-Paper busy release");
+  int busy = 0;
+  while (true)
+  {
+    delay(100);
+    busy = digitalRead(EPD_BUSY_PIN);
+    if (busy == 1)
+      break;
+  }
+  Serial.println("e-Paper busy released");
+}
+
 void DisplayDriver750::refresh()
 {
   Serial.println("Refresh display");
-  EPD_7IN5B_V2_SendCommand(0x12); // DISPLAY REFRESH
-  delay(100);                     // !!!The delay here is necessary, 200uS at least!!!
-  EPD_7IN5B_V2_Wait_Until_Idle(); // waiting for the electronic paper IC to release the idle signal
+  sendCommand(0x12); // DISPLAY REFRESH
+  delay(100);        // !!!The delay here is necessary, 200uS at least!!!
+  waitUntilIdle();   // waiting for the electronic paper IC to release the idle signal
 
   state = DISPLAY_DRIVER_IDLE;
 }
@@ -377,14 +354,14 @@ void DisplayDriver750::sendDisplayDataWithColor(const std::function<void(BaseDis
   {
     Serial.println("Send black data");
     // Send black data
-    EPD_7IN5B_V2_SendCommand(0x10);
+    sendCommand(0x10);
     currentSendingColor = DISPLAY_COLOR_BLACK;
   }
   else
   {
     Serial.println("Send red data");
     // Send Red data
-    EPD_7IN5B_V2_SendCommand(0x13);
+    sendCommand(0x13);
     currentSendingColor = DISPLAY_COLOR_RED;
   }
 
@@ -431,7 +408,7 @@ void DisplayDriver750::sendPageData()
 {
   printf("send %d page data\r\n", currentSendingPage);
 
-  EPD_7IN5B_V2_SendData2(currentPageData.data(), pageByteLength);
+  sendDataWithLen(currentPageData.data(), pageByteLength);
 
   delay(1);
 }
@@ -445,14 +422,14 @@ void DisplayDriver750::sleep()
 
   Serial.println("Sleep display");
 
-  EPD_7IN5B_V2_SendCommand(0X02); // power off
+  sendCommand(0X02); // power off
 
-  EPD_7IN5B_V2_Wait_Until_Idle(); // waiting for the electronic paper IC to release the idle signal
+  waitUntilIdle(); // waiting for the electronic paper IC to release the idle signal
 
   delay(500);
 
-  EPD_7IN5B_V2_SendCommand(0X07); // deep sleep
-  EPD_7IN5B_V2_SendData(0xA5);
+  sendCommand(0X07); // deep sleep
+  sendData(0xA5);
 }
 
 void DisplayDriver750::getStringBounds(const char *text, sFONT *font, uint16_t *x, uint16_t *y, uint16_t *w, uint16_t *h)
