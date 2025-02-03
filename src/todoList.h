@@ -71,6 +71,9 @@ void show401()
   //   display.println("API Key authorization failed!");
   //   display.println("Please long press the button to enter config mode!");
   // } while (display.nextPage());
+
+  display.display([](BaseDisplayDriver &displayDriver)
+                  { displayDriver.drawString(displayDriver.width / 2, displayDriver.height / 2, "API Key authorization failed!\nPlease long press the button to enter config mode!  ", &Font24, DISPLAY_COLOR_BLACK, TEXT_ALIGN_CENTER); });
 }
 
 void displayToScreen(String file = cachedFileName, uint16_t w = 0, uint16_t h = 0, DisplayColor color = DISPLAY_COLOR_BLACK)
@@ -122,6 +125,39 @@ void displayToScreen(String file = cachedFileName, uint16_t w = 0, uint16_t h = 
   //   }
   //   // drawCurrentTime();
   // } while (display.nextPage());
+
+  display.display([&readFile, w, h, color](BaseDisplayDriver &displayDriver)
+                  {
+                    readFile.seek(0);
+                    uint16_t x = 0;
+                    uint16_t y = 0;
+                    uint8_t buf[128];
+                    while (readFile.available())
+                    {
+                      readFile.read(buf, sizeof(buf));
+                      // draw pixel from buf, 8 pixels in a byte, width is w, height is h
+                      for (unsigned int i = 0; i < sizeof(buf); i++)
+                      {
+                        for (int j = 0; j < 8; j++)
+                        {
+                          if (x >= w)
+                          {
+                            x = 0;
+                            y++;
+                          }
+                          if (y >= h)
+                          {
+                            break;
+                          }
+                          if (buf[i] & (0x80 >> j))
+                          {
+                            displayDriver.drawPixel(x, y, color);
+                          }
+                          x++;
+                        }
+                      }
+                    } });
+
   readFile.close();
   LittleFS.end();
   Serial.printf("Display to screen %s done in %lu ms\n", file.c_str(), millis() - start);

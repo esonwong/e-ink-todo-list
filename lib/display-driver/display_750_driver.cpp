@@ -409,10 +409,7 @@ void DisplayDriver750::testDisplay()
 
 void DisplayDriver750::sendPageData()
 {
-  printf("send %d page data\r\n", currentSendingPage);
-
   sendDataWithLen(currentPageData.data(), pageByteLength);
-
   delay(1);
 }
 
