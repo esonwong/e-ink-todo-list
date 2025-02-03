@@ -156,78 +156,34 @@ void DisplayDriver750::drawChar(uint16_t x, uint16_t y, char c, sFONT *font, Dis
   DisplayColor Color_Foreground = color;               // 前景色
 
   uint32_t Char_Offset = (c - ' ') * font->Height * (font->Width / 8 + (font->Width % 8 ? 1 : 0));
-  const unsigned char *ptr = &font->table[Char_Offset];
-
-  // Serial.print("Char: ");
-  // Serial.print(c);
-  // Serial.print(" Char_Offset: ");
-  // Serial.println(Char_Offset);
+  const uint8_t *ptr = &font->table[Char_Offset];
 
   for (Line = 0; Line < font->Height; Line++)
   {
     for (Column = 0; Column < font->Width; Column++)
     {
-
-      // To determine whether the font background color and screen background color is consistent
+      uint8_t data = pgm_read_byte(ptr);
       if (DISPLAY_COLOR_WHITE == Color_Background)
       {
-        // this process is to speed up the scan
-        if (*ptr & (0x80 >> (Column % 8)))
+        if (data & (0x80 >> (Column % 8)))
           drawPixel(x + Column, y + Line, Color_Foreground);
       }
       else
       {
-        if (*ptr & (0x80 >> (Column % 8)))
-        {
+        if (data & (0x80 >> (Column % 8)))
           drawPixel(x + Column, y + Line, Color_Foreground);
-        }
         else
-        {
           drawPixel(x + Column, y + Line, Color_Background);
-        }
       }
-      // One pixel is 8 bits
+
       if (Column % 8 == 7)
         ptr++;
-    } // Write a line
+    }
     if (font->Width % 8 != 0)
       ptr++;
-  } // Write all
+  }
 }
 
-// void DisplayDriver750::clear()
-// {
-//   uint16_t Width, Height;
-//   Width = (width % 8 == 0) ? (width / 8) : (width / 8 + 1);
-//   Height = height;
-
-//   u_int8_t image[width / 8] = {0x00};
-
-//   uint16_t i;
-//   for (i = 0; i < Width; i++)
-//   {
-//     image[i] = 0xff;
-//   }
-//   sendCommand(0x10);
-//   for (i = 0; i < Height; i++)
-//   {
-//     sendDataWithLen(image, Width);
-//     delay(1);
-//   }
-
-//   for (i = 0; i < Width; i++)
-//   {
-//     image[i] = 0x00;
-//   }
-//   sendCommand(0x13);
-//   for (i = 0; i < Height; i++)
-//   {
-//     sendDataWithLen(image, Width);
-//     delay(1);
-//   }
-
-//   refresh();
-// }
 void DisplayDriver750::clear()
 {
   uint16_t Width = (width % 8 == 0) ? (width / 8) : (width / 8 + 1);

@@ -42,7 +42,7 @@
 //  Font data for Courier New 12pt
 //
 
-const uint8_t Font12_Table[] =
+const uint8_t Font12_Table[] PROGMEM =
     {
         // @0 ' ' (7 pixels wide)
         0x00, //

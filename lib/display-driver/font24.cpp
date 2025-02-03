@@ -38,7 +38,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "fonts.h"
 
-const uint8_t Font24_Table[] =
+const uint8_t Font24_Table[] PROGMEM =
 	{
 		// @0 ' ' (17 pixels wide)
 		0x00, 0x00, 0x00, //
@@ -2498,6 +2498,7 @@ const uint8_t Font24_Table[] =
 		0x3B, 0xB8, 0x00, //   ### ### ###
 		0x31, 0xF0, 0x00, //   ##   #####
 		0x00, 0xE0, 0x00, //         ###
+		0x00, 0x00, 0x00, //
 		0x00, 0x00, 0x00, //
 		0x00, 0x00, 0x00, //
 		0x00, 0x00, 0x00, //
