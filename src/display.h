@@ -57,8 +57,3 @@ void showTextOnScreenCenter(const char *text, sFONT $font = Font24)
 
                     displayDriver.drawString((displayDriver.width - textW) / 2, (displayDriver.height - textH) / 2, text, &Font24, DISPLAY_COLOR_BLACK); });
 }
-
-void showTextOnScreenCenter(String text, uint8_t textSize = 2)
-{
-  showTextOnScreenCenter(text.c_str(), textSize);
-}
