@@ -126,7 +126,6 @@ void DisplayDriver750::initialize()
   SPI.setDataMode(SPI_MODE0);
   SPI.setBitOrder(MSBFIRST);
   SPI.setClockDivider(SPI_CLOCK_DIV4);
-  SPI.begin();
 
   rest();
 
