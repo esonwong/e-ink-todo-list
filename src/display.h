@@ -41,7 +41,8 @@ void showLaunchScreen()
                     uint16_t versionW, versionH;
 
                     displayDriver.getStringBounds(version, &Font12, &x, &y, &versionW, &versionH);
-                    displayDriver.drawString((displayDriver.width - versionW) / 2, displayDriver.height - versionH - 10, version, &Font12, DISPLAY_COLOR_BLACK);
+
+                    displayDriver.drawString(displayDriver.width - 10, displayDriver.height - versionH - 10, version, &Font12, DISPLAY_COLOR_BLACK, TEXT_ALIGN_RIGHT);
 #endif
                   });
 }
@@ -55,5 +56,5 @@ void showTextOnScreenCenter(const char *text, sFONT $font = Font24)
 
                     displayDriver.getStringBounds(text, &Font24, &x, &y, &textW, &textH);
 
-                    displayDriver.drawString((displayDriver.width - textW) / 2, (displayDriver.height - textH) / 2, text, &Font24, DISPLAY_COLOR_BLACK); });
+                    displayDriver.drawString(displayDriver.width / 2, (displayDriver.height - textH) / 2, text, &Font24, DISPLAY_COLOR_RED, TEXT_ALIGN_CENTER); });
 }

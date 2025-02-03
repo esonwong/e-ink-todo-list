@@ -136,16 +136,57 @@ void DisplayDriver750::initialize()
   sendData(0x07);    // 数据间隔设置保持不变
 }
 
-void DisplayDriver750::drawString(uint16_t x, uint16_t y, const char *text, sFONT *font, DisplayColor color)
+void DisplayDriver750::drawString(uint16_t x, uint16_t y, const char *text, sFONT *font, DisplayColor color, TextAlign align)
 {
-  uint16_t currentX = x;
+  const char *textPtr = text;
+  const char *lineStart = text;
   uint16_t currentY = y;
 
-  while (*text != '\0')
+  while (true)
   {
-    drawChar(currentX, currentY, *text, font, color);
-    currentX += font->Width;
-    text++;
+    // 找到当前行的结束位置
+    while (*textPtr != '\0' && *textPtr != '\n')
+    {
+      textPtr++;
+    }
+
+    // 计算当前行的长度
+    size_t lineLength = textPtr - lineStart;
+    uint16_t lineWidth = lineLength * font->Width;
+
+    // 根据对齐方式计算起始X坐标
+    uint16_t currentX = x;
+    switch (align)
+    {
+    case TEXT_ALIGN_CENTER:
+      currentX = x - (lineWidth / 2);
+      break;
+    case TEXT_ALIGN_RIGHT:
+      currentX = x - lineWidth;
+      break;
+    case TEXT_ALIGN_LEFT:
+    default:
+      // 左对齐不需要调整
+      break;
+    }
+
+    // 绘制当前行的每个字符
+    for (const char *p = lineStart; p < textPtr; p++)
+    {
+      drawChar(currentX, currentY, *p, font, color);
+      currentX += font->Width;
+    }
+
+    // 如果到达字符串结尾，退出循环
+    if (*textPtr == '\0')
+    {
+      break;
+    }
+
+    // 移动到下一行
+    textPtr++; // 跳过换行符
+    lineStart = textPtr;
+    currentY += font->Height;
   }
 }
 
@@ -399,7 +440,35 @@ void DisplayDriver750::getStringBounds(const char *text, sFONT *font, uint16_t *
   if (text == nullptr || font == nullptr)
     return;
 
-  size_t length = strlen(text);
-  *w = length * font->Width; // 字符串总宽度 = 字符数 × 单个字符宽度
-  *h = font->Height;         // 高度就是字体高度
+  uint16_t maxWidth = 0;     // 最大行宽
+  uint16_t currentWidth = 0; // 当前行宽
+  uint16_t lines = 1;        // 行数
+
+  const char *p = text;
+  while (*p != '\0')
+  {
+    if (*p == '\n')
+    {
+      lines++;
+      maxWidth = max(maxWidth, currentWidth);
+      currentWidth = 0;
+    }
+    else
+    {
+      currentWidth += font->Width;
+    }
+    p++;
+  }
+
+  // 检查最后一行
+  maxWidth = max(maxWidth, currentWidth);
+
+  *w = maxWidth;             // 最大行宽
+  *h = font->Height * lines; // 总高度 = 字体高度 × 行数
+
+  // 对于居中对齐，需要调整x坐标
+  if (*x != 0)
+  {
+    *x -= maxWidth / 2;
+  }
 }

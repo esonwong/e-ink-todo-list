@@ -28,7 +28,7 @@ void setup()
 
 #ifdef DEBUG
 
-  showTextOnScreenCenter("Debug Mode");
+  showTextOnScreenCenter("Debug\nMode");
 
   Serial.print("Sketch MD5: ");
   Serial.println(ESP.getSketchMD5());

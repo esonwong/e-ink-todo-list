@@ -18,6 +18,13 @@ enum DisplayColor
     DISPLAY_COLOR_WHITE,
 };
 
+enum TextAlign
+{
+    TEXT_ALIGN_LEFT,
+    TEXT_ALIGN_CENTER, // 默认值
+    TEXT_ALIGN_RIGHT
+};
+
 class BaseDisplayDriver
 /**
  * @class BaseDisplayDriver
@@ -70,7 +77,7 @@ public:
     virtual void testDisplay() = 0;
 
     virtual void drawChar(uint16_t x, uint16_t y, char c, sFONT *font, DisplayColor color) = 0;
-    virtual void drawString(uint16_t x, uint16_t y, const char *text, sFONT *font, DisplayColor color) = 0;
+    virtual void drawString(uint16_t x, uint16_t y, const char *text, sFONT *font, DisplayColor color, TextAlign align = TEXT_ALIGN_LEFT) = 0;
     virtual void getStringBounds(const char *text, sFONT *font, uint16_t *x, uint16_t *y, uint16_t *w, uint16_t *h) = 0;
 
     static const uint16_t width;  // Width of the display.
