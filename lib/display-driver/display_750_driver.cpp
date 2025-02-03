@@ -1,5 +1,6 @@
 #include "display_750_driver.h"
 #include "fonts.h"
+#include <SPI.h>
 
 /**
  * data
@@ -108,15 +109,15 @@ void EPD_7IN5B_V2_Wait_Until_Idle(void)
 function :	Software reset
 parameter:
 ******************************************************************************/
-static void EPD_7IN5B_V2_Reset(void)
-{
-  DEV_Digital_Write(EPD_RST_PIN, 1);
-  delay(200);
-  DEV_Digital_Write(EPD_RST_PIN, 0);
-  delay(2);
-  DEV_Digital_Write(EPD_RST_PIN, 1);
-  delay(200);
-}
+// static void EPD_7IN5B_V2_Reset(void)
+// {
+//   DEV_Digital_Write(EPD_RST_PIN, 1);
+//   delay(200);
+//   DEV_Digital_Write(EPD_RST_PIN, 0);
+//   delay(2);
+//   DEV_Digital_Write(EPD_RST_PIN, 1);
+//   delay(200);
+// }
 
 const uint16_t BaseDisplayDriver::width = 800;
 const uint16_t BaseDisplayDriver::height = 480;
@@ -133,6 +134,17 @@ DisplayDriver750::~DisplayDriver750()
 {
 }
 
+void DisplayDriver750::rest()
+{
+  Serial.println("Reset display");
+  digitalWrite(EPD_RST_PIN, HIGH);
+  delay(200);
+  digitalWrite(EPD_RST_PIN, LOW);
+  delay(2);
+  digitalWrite(EPD_RST_PIN, HIGH);
+  delay(200);
+}
+
 void DisplayDriver750::initialize()
 {
 
@@ -142,16 +154,18 @@ void DisplayDriver750::initialize()
   pinMode(EPD_RST_PIN, OUTPUT);
   pinMode(EPD_DC_PIN, OUTPUT);
 
-  pinMode(EPD_SCK_PIN, OUTPUT);
-  pinMode(EPD_MOSI_PIN, OUTPUT);
-  pinMode(EPD_CS_PIN, OUTPUT);
+  // Configure SPI
+  // pinMode(EPD_SCK_PIN, OUTPUT);
+  // pinMode(EPD_MOSI_PIN, OUTPUT);
+  // pinMode(EPD_CS_PIN, OUTPUT);
+  // digitalWrite(EPD_CS_PIN, HIGH);
+  // digitalWrite(EPD_SCK_PIN, LOW);
 
-  digitalWrite(EPD_CS_PIN, HIGH);
-  digitalWrite(EPD_SCK_PIN, LOW);
+  SPI.begin();
 
   // EPD_7IN5B_V2_Init();
 
-  EPD_7IN5B_V2_Reset();
+  rest();
 
   EPD_7IN5B_V2_SendCommand(0x01); // POWER SETTING
   EPD_7IN5B_V2_SendData(0x07);

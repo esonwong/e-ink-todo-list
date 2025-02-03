@@ -9,6 +9,8 @@ public:
     DisplayDriver750();
     ~DisplayDriver750();
 
+    void rest();
+
     void initialize() override;
     void drawString(uint16_t x, uint16_t y, const char *text, sFONT *font, DisplayColor color);
     void drawChar(uint16_t x, uint16_t y, char c, sFONT *font, DisplayColor color);
