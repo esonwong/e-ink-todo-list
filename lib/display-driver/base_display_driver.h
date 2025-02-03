@@ -85,6 +85,16 @@ protected:
 
     DisplayState state; ///< Current state of the display.
 
+    /**
+     * @brief Frees the memory allocated for the current page data.
+     */
+    void freeMemory()
+    {
+        // currentPageData.clear();
+        // currentPageData.shrink_to_fit();
+        std::vector<uint8_t>().swap(currentPageData);
+    }
+
     virtual void sendDisplayDataWithColor(const std::function<void(BaseDisplayDriver &)> drawFunction, DisplayColor color) = 0;
 
     /**

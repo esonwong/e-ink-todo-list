@@ -137,6 +137,9 @@ void downloadAndDrawTodo()
     return;
   }
 
+  Serial.print("Free memory: ");
+  Serial.println(ESP.getFreeHeap());
+
   const char *apiRoot = apiUrl.getValue();
   const char *apikey = apiKey.getValue();
 

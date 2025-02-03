@@ -72,9 +72,8 @@ void setup()
   Serial.print("API URL: ");
   Serial.println(setting.apiUrl);
 
-  delay(500);
   showLaunchScreen();
-  delay(3000);
+  delay(000);
 
   initStore();
   initButton();
@@ -122,6 +121,9 @@ void setup()
 
   delay(5 * 60 * 1000);
 #endif // ENABLE_PCB_TEST
+
+  Serial.print("Free memory: ");
+  Serial.println(ESP.getFreeHeap());
 }
 
 void loop()

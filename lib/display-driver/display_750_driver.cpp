@@ -21,6 +21,12 @@ DisplayDriver750::DisplayDriver750()
 
 DisplayDriver750::~DisplayDriver750()
 {
+  if (currentPageData.size() > 0)
+  {
+    freeMemory();
+  }
+  Serial.println("DisplayDriver destructor: 750");
+  SPI.end();
 }
 
 void DisplayDriver750::rest()
@@ -126,6 +132,7 @@ void DisplayDriver750::initialize()
   SPI.setDataMode(SPI_MODE0);
   SPI.setBitOrder(MSBFIRST);
   SPI.setClockDivider(SPI_CLOCK_DIV4);
+  SPI.begin();
 
   rest();
 
@@ -342,9 +349,20 @@ void DisplayDriver750::display(const std::function<void(BaseDisplayDriver &)> dr
   sendDisplayDataWithColor(drawFunction, DISPLAY_COLOR_BLACK);
   sendDisplayDataWithColor(drawFunction, DISPLAY_COLOR_RED);
 
+  Serial.print("Free memory: ");
+  Serial.println(ESP.getFreeHeap());
+  Serial.print("currentPageData size: ");
+  Serial.println(currentPageData.size());
+  freeMemory();
+  Serial.print("currentPageData size: ");
+  Serial.println(currentPageData.size());
+  Serial.print("Free memory: ");
+  Serial.println(ESP.getFreeHeap());
+
   refresh();
 
   sleep();
+  SPI.end();
 }
 
 void DisplayDriver750::sendDisplayDataWithColor(const std::function<void(BaseDisplayDriver &)> drawFunction, DisplayColor color)
