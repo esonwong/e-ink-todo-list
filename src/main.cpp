@@ -19,7 +19,7 @@ void setup()
   Serial.println();
   Serial.println("Steup Start!!!!!");
   // delay(500);
-  initDisplay();
+  showLaunchScreen();
 
 #ifdef GIT_VERSION
   Serial.print("Version: ");
@@ -71,9 +71,6 @@ void setup()
 
   Serial.print("API URL: ");
   Serial.println(setting.apiUrl);
-
-  showLaunchScreen();
-  delay(000);
 
   initStore();
   initButton();

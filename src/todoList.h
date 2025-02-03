@@ -192,6 +192,10 @@ void downloadAndDrawTodo()
 
   Serial.printf("HTTPS GET: %d\n", httpCode);
   Serial.printf("Content-Length: %d\n", contentLength);
+
+  Serial.print("Free memory: ");
+  Serial.println(ESP.getFreeHeap());
+
   if (httpCode == HTTP_CODE_NOT_MODIFIED)
   {
     Serial.println("Not Modified");

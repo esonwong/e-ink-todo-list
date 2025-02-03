@@ -40,34 +40,6 @@ void DisplayDriver750::rest()
   delay(200);
 }
 
-void DisplayDriver750::spiWriteByte(uint8_t data)
-{
-  SPI.beginTransaction(spiSettings);
-  // digitalWrite(EPD_CS_PIN, LOW);
-
-  // for (int i = 0; i < 8; i++)
-  // {
-  //   if ((data & 0x80) == 0)
-  //     digitalWrite(EPD_MOSI_PIN, LOW);
-  //   else
-  //     digitalWrite(EPD_MOSI_PIN, HIGH);
-
-  //   data <<= 1;
-  //   digitalWrite(EPD_SCK_PIN, HIGH);
-  //   digitalWrite(EPD_SCK_PIN, LOW);
-  // }
-
-  SPI.transfer(data);
-  // digitalWrite(EPD_CS_PIN, HIGH);
-  SPI.endTransaction();
-}
-
-void DisplayDriver750::spiWriteBytes(uint8_t *pData, uint32_t len)
-{
-  for (int i = 0; i < len; i++)
-    spiWriteByte(pData[i]);
-}
-
 // /******************************************************************************
 // function :	send command
 // parameter:
@@ -75,41 +47,34 @@ void DisplayDriver750::spiWriteBytes(uint8_t *pData, uint32_t len)
 // ******************************************************************************/
 void DisplayDriver750::sendCommand(uint8_t command)
 {
+  SPI.beginTransaction(spiSettings);
   digitalWrite(EPD_DC_PIN, LOW);
   digitalWrite(EPD_CS_PIN, LOW);
-  spiWriteByte(command);
+  SPI.transfer(command);
   digitalWrite(EPD_CS_PIN, HIGH);
-
-  // SPI.beginTransaction(spiSettings);
-  // digitalWrite(EPD_DC_PIN, LOW); // 命令模式
-  // digitalWrite(EPD_CS_PIN, LOW);
-  // SPI.transfer(command);
-  // digitalWrite(EPD_CS_PIN, HIGH);
-  // digitalWrite(EPD_DC_PIN, HIGH);
-  // SPI.endTransaction();
+  digitalWrite(EPD_DC_PIN, HIGH);
+  SPI.endTransaction();
 }
 
 void DisplayDriver750::sendData(uint8_t data)
 {
-  digitalWrite(EPD_DC_PIN, HIGH);
+  SPI.beginTransaction(spiSettings);
   digitalWrite(EPD_CS_PIN, LOW);
-  spiWriteByte(data);
+  SPI.transfer(data);
   digitalWrite(EPD_CS_PIN, HIGH);
-
-  // SPI.beginTransaction(spiSettings);
-  // digitalWrite(EPD_CS_PIN, LOW);
-  // digitalWrite(EPD_DC_PIN, HIGH); // 数据模式
-  // SPI.transfer(data);
-  // digitalWrite(EPD_CS_PIN, HIGH);
-  // SPI.endTransaction();
+  SPI.endTransaction();
 }
 
 void DisplayDriver750::sendDataWithLen(uint8_t *pData, uint32_t len)
 {
-  digitalWrite(EPD_DC_PIN, 1);
-  digitalWrite(EPD_CS_PIN, 0);
-  spiWriteBytes(pData, len);
-  digitalWrite(EPD_CS_PIN, 1);
+  SPI.beginTransaction(spiSettings);
+  digitalWrite(EPD_CS_PIN, LOW);
+  for (uint32_t i = 0; i < len; i++)
+  {
+    SPI.transfer(pData[i]);
+  }
+  digitalWrite(EPD_CS_PIN, HIGH);
+  SPI.endTransaction();
 }
 
 void DisplayDriver750::initialize()
@@ -230,36 +195,60 @@ void DisplayDriver750::drawChar(uint16_t x, uint16_t y, char c, sFONT *font, Dis
   } // Write all
 }
 
+// void DisplayDriver750::clear()
+// {
+//   uint16_t Width, Height;
+//   Width = (width % 8 == 0) ? (width / 8) : (width / 8 + 1);
+//   Height = height;
+
+//   u_int8_t image[width / 8] = {0x00};
+
+//   uint16_t i;
+//   for (i = 0; i < Width; i++)
+//   {
+//     image[i] = 0xff;
+//   }
+//   sendCommand(0x10);
+//   for (i = 0; i < Height; i++)
+//   {
+//     sendDataWithLen(image, Width);
+//     delay(1);
+//   }
+
+//   for (i = 0; i < Width; i++)
+//   {
+//     image[i] = 0x00;
+//   }
+//   sendCommand(0x13);
+//   for (i = 0; i < Height; i++)
+//   {
+//     sendDataWithLen(image, Width);
+//     delay(1);
+//   }
+
+//   refresh();
+// }
 void DisplayDriver750::clear()
 {
-  uint16_t Width, Height;
-  Width = (width % 8 == 0) ? (width / 8) : (width / 8 + 1);
-  Height = height;
+  uint16_t Width = (width % 8 == 0) ? (width / 8) : (width / 8 + 1);
+  uint16_t Height = height;
 
-  u_int8_t image[width / 8] = {0x00};
+  auto fillScreen = [&](uint8_t value, uint8_t command)
+  {
+    sendCommand(command);
+    for (uint16_t y = 0; y < Height; y++)
+    {
+      for (uint16_t x = 0; x < Width; x++)
+      {
+        sendData(value);
+      }
+      delay(1);
+    }
+  };
 
-  uint16_t i;
-  for (i = 0; i < Width; i++)
-  {
-    image[i] = 0xff;
-  }
-  sendCommand(0x10);
-  for (i = 0; i < Height; i++)
-  {
-    sendDataWithLen(image, Width);
-    delay(1);
-  }
+  fillScreen(0xff, 0x10); // clear black
+  fillScreen(0x00, 0x13); // clear red
 
-  for (i = 0; i < Width; i++)
-  {
-    image[i] = 0x00;
-  }
-  sendCommand(0x13);
-  for (i = 0; i < Height; i++)
-  {
-    sendDataWithLen(image, Width);
-    delay(1);
-  }
   refresh();
 }
 
