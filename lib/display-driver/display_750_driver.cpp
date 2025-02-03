@@ -1,6 +1,15 @@
 #include "display_750_driver.h"
-#include "utility/EPD_7in5b_V2.h"
 #include "fonts.h"
+
+/**
+ * data
+ **/
+#define UBYTE uint8_t
+#define UWORD uint16_t
+#define UDOUBLE uint32_t
+
+#define GPIO_PIN_SET 1
+#define GPIO_PIN_RESET 0
 
 #define EPD_SCK_PIN 14
 #define EPD_MOSI_PIN 13
@@ -8,6 +17,34 @@
 #define EPD_RST_PIN 2
 #define EPD_DC_PIN 4
 #define EPD_BUSY_PIN 5 // 0:busy, 1: idle
+
+#define DEV_Digital_Write(_pin, _value) digitalWrite(_pin, _value == 0 ? LOW : HIGH)
+
+/******************************************************************************
+function:
+            SPI read and write
+******************************************************************************/
+void DEV_SPI_WriteByte(UBYTE data)
+{
+  // SPI.beginTransaction(spi_settings);
+  digitalWrite(EPD_CS_PIN, GPIO_PIN_RESET);
+
+  for (int i = 0; i < 8; i++)
+  {
+    if ((data & 0x80) == 0)
+      digitalWrite(EPD_MOSI_PIN, GPIO_PIN_RESET);
+    else
+      digitalWrite(EPD_MOSI_PIN, GPIO_PIN_SET);
+
+    data <<= 1;
+    digitalWrite(EPD_SCK_PIN, GPIO_PIN_SET);
+    digitalWrite(EPD_SCK_PIN, GPIO_PIN_RESET);
+  }
+
+  // SPI.transfer(data);
+  digitalWrite(EPD_CS_PIN, GPIO_PIN_SET);
+  // SPI.endTransaction();
+}
 
 // /******************************************************************************
 // function :	send command
@@ -33,6 +70,12 @@ static void EPD_7IN5B_V2_SendData(UBYTE Data)
   digitalWrite(EPD_CS_PIN, 0);
   DEV_SPI_WriteByte(Data);
   digitalWrite(EPD_CS_PIN, 1);
+}
+
+void DEV_SPI_Write_nByte(UBYTE *pData, UDOUBLE len)
+{
+  for (int i = 0; i < len; i++)
+    DEV_SPI_WriteByte(pData[i]);
 }
 
 static void EPD_7IN5B_V2_SendData2(UBYTE *pData, UDOUBLE len)
@@ -68,11 +111,11 @@ parameter:
 static void EPD_7IN5B_V2_Reset(void)
 {
   DEV_Digital_Write(EPD_RST_PIN, 1);
-  DEV_Delay_ms(200);
+  delay(200);
   DEV_Digital_Write(EPD_RST_PIN, 0);
-  DEV_Delay_ms(2);
+  delay(2);
   DEV_Digital_Write(EPD_RST_PIN, 1);
-  DEV_Delay_ms(200);
+  delay(200);
 }
 
 const uint16_t BaseDisplayDriver::width = 800;
@@ -206,7 +249,35 @@ void DisplayDriver750::drawChar(uint16_t x, uint16_t y, char c, sFONT *font, Dis
 
 void DisplayDriver750::clear()
 {
-  EPD_7IN5B_V2_Clear();
+  UWORD Width, Height;
+  Width = (width % 8 == 0) ? (width / 8) : (width / 8 + 1);
+  Height = height;
+
+  UBYTE image[width / 8] = {0x00};
+
+  UWORD i;
+  for (i = 0; i < Width; i++)
+  {
+    image[i] = 0xff;
+  }
+  EPD_7IN5B_V2_SendCommand(0x10);
+  for (i = 0; i < Height; i++)
+  {
+    EPD_7IN5B_V2_SendData2(image, Width);
+    delay(1);
+  }
+
+  for (i = 0; i < Width; i++)
+  {
+    image[i] = 0x00;
+  }
+  EPD_7IN5B_V2_SendCommand(0x13);
+  for (i = 0; i < Height; i++)
+  {
+    EPD_7IN5B_V2_SendData2(image, Width);
+    delay(1);
+  }
+  refresh();
 }
 
 void DisplayDriver750::drawPixel(uint16_t x, uint16_t y, DisplayColor color)
