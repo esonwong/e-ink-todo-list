@@ -42,14 +42,8 @@ void showLaunchScreen()
                   });
 }
 
-void showTextOnScreenCenter(const char *text, sFONT $font = Font24)
+void showTextOnScreenCenter(String text, sFONT *font = &Font24, DisplayColor color = DISPLAY_COLOR_BLACK)
 {
-  display.display([text](BaseDisplayDriver &displayDriver)
-                  {
-                    uint16_t x, y;
-                    uint16_t textW, textH;
-
-                    displayDriver.getStringBounds(text, &Font24, &x, &y, &textW, &textH);
-
-                    displayDriver.drawString(displayDriver.width / 2, (displayDriver.height - textH) / 2, text, &Font24, DISPLAY_COLOR_RED, TEXT_ALIGN_CENTER); });
+  display.display([text, font, color](BaseDisplayDriver &displayDriver)
+                  { displayDriver.drawString(displayDriver.width / 2, displayDriver.height / 2 - font->Height, text, font, color, TEXT_ALIGN_CENTER); });
 }
