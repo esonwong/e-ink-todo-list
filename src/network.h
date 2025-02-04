@@ -19,25 +19,14 @@ void onConnectNetwork()
 
 void configModeCallback(WiFiManager *myWiFiManager)
 {
-
-  //   initDisplay();
-
-  //   do
-  //   {
-  //     display.fillScreen(GxEPD_WHITE);
-  //     display.setTextColor(GxEPD_BLACK);
-  //     display.setCursor(0, 0);
-  //     display.println("Entered config mode");
-  //     display.println("Please connect to the AP: " + String(myWiFiManager->getConfigPortalSSID()));
-  //     display.println("Password: " + AP_PASSWORD);
-  //     display.println("Config Web Server: http://" + WiFi.softAPIP().toString());
-  // #ifdef GIT_VERSION
-  //     display.println("Version: " + String(GIT_VERSION));
-  // #endif
-
-  //     // Todo: Show AP QR Code
-
-  //   } while (display.nextPage());
+  display.display([myWiFiManager](BaseDisplayDriver &displayDriver)
+                  { uint16_t y = displayDriver.drawString(displayDriver.width / 2, displayDriver.height / 5, "Entered config mode", &Font24, DISPLAY_COLOR_BLACK, TEXT_ALIGN_CENTER); 
+                    displayDriver.drawString(displayDriver.width / 2, y, "Please connect to the AP: " , &Font20, DISPLAY_COLOR_BLACK, TEXT_ALIGN_RIGHT);
+                    y= displayDriver.drawString(displayDriver.width / 2, y, myWiFiManager->getConfigPortalSSID(), &Font20, DISPLAY_COLOR_BLACK, TEXT_ALIGN_LEFT);
+                    displayDriver.drawString(displayDriver.width / 2, y, "Password: " , &Font20, DISPLAY_COLOR_BLACK, TEXT_ALIGN_RIGHT);
+                    y= displayDriver.drawString(displayDriver.width / 2, y, AP_PASSWORD, &Font20, DISPLAY_COLOR_BLACK, TEXT_ALIGN_LEFT); 
+                    displayDriver.drawString(displayDriver.width / 2, y, "Config Web Server: ", &Font20, DISPLAY_COLOR_BLACK, TEXT_ALIGN_RIGHT); 
+                    y= displayDriver.drawString(displayDriver.width / 2, y, "http://" + WiFi.softAPIP().toString(), &Font20, DISPLAY_COLOR_BLACK, TEXT_ALIGN_LEFT); });
 }
 
 void preSaveConfigCallback()

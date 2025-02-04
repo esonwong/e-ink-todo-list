@@ -41,6 +41,13 @@ void onEndUpdateFireWare()
 void updateFireWare(const char *url = FIRMWARE_UPDATE_URL)
 {
 
+#ifdef ENABLE_OTA
+  Serial.println("OTA is enabled");
+#else
+  Serial.println("OTA is disabled");
+  return;
+#endif // ENABLE_OTA
+
   int lastFirmwareCheck = getPersistentValue("lastFirmwareCheck", 0);
   int now = time(nullptr);
   int diff = now - lastFirmwareCheck;

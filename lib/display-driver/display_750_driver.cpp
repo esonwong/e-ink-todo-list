@@ -193,6 +193,11 @@ uint16_t DisplayDriver750::drawString(uint16_t x, uint16_t y, const char *text, 
   return currentY + font->Height;
 }
 
+u_int16_t DisplayDriver750::drawString(uint16_t x, uint16_t y, String text, sFONT *font, DisplayColor color, TextAlign align)
+{
+  return drawString(x, y, text.c_str(), font, color, align);
+}
+
 void DisplayDriver750::drawChar(uint16_t x, uint16_t y, char c, sFONT *font, DisplayColor color)
 {
   u_int16_t Line, Column;                              // 行和列

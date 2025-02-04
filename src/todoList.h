@@ -61,19 +61,9 @@ void showNoContent()
 
 void show401()
 {
-
-  // initDisplay();
-  // do
-  // {
-  //   display.fillScreen(GxEPD_WHITE);
-  //   display.setTextColor(GxEPD_BLACK);
-  //   display.setCursor(0, 0);
-  //   display.println("API Key authorization failed!");
-  //   display.println("Please long press the button to enter config mode!");
-  // } while (display.nextPage());
-
   display.display([](BaseDisplayDriver &displayDriver)
-                  { displayDriver.drawString(displayDriver.width / 2, displayDriver.height / 2, "API Key authorization failed!\nPlease long press the button to enter config mode!  ", &Font24, DISPLAY_COLOR_BLACK, TEXT_ALIGN_CENTER); });
+                  { uint16_t y = displayDriver.drawString(displayDriver.width / 2, displayDriver.height / 5, "API Key authorization failed!", &Font24, DISPLAY_COLOR_RED, TEXT_ALIGN_CENTER); 
+                    displayDriver.drawString(displayDriver.width / 2, y + 10, "Please long press the button to enter config mode!", &Font20, DISPLAY_COLOR_BLACK, TEXT_ALIGN_CENTER); });
 }
 
 void displayToScreen(String file = cachedFileName, uint16_t w = 0, uint16_t h = 0, DisplayColor color = DISPLAY_COLOR_BLACK)

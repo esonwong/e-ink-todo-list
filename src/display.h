@@ -25,25 +25,20 @@ void showLaunchScreen()
 
   display.display([](BaseDisplayDriver &displayDriver)
                   {
-                    uint16_t x, y;
-                    uint16_t nameW, nameH, authorW, authorH;
                     const char *name = "E-Ink Todo List";
                     const char *author = "by @Eson";
 
-                    displayDriver.getStringBounds(name, &Font24, &x, &y, &nameW, &nameH);
-                    displayDriver.getStringBounds(author, &Font20, &x, &y, &authorW, &authorH);
+                    uint16_t y = displayDriver.drawString(displayDriver.width / 2, displayDriver.height / 5, name, &Font24, DISPLAY_COLOR_BLACK, TEXT_ALIGN_CENTER);
+                    y = displayDriver.drawString(displayDriver.width / 2, y + 10, author, &Font20, DISPLAY_COLOR_BLACK, TEXT_ALIGN_CENTER);
 
-                    displayDriver.drawString((displayDriver.width - nameW) / 2, displayDriver.height / 2 - nameH - 80, name, &Font24, DISPLAY_COLOR_BLACK);
-                    displayDriver.drawString((displayDriver.width - authorW) / 2, displayDriver.height / 2 + nameH / 2 - 80, author, &Font20, DISPLAY_COLOR_BLACK);
+#ifdef DEBUG
+                    displayDriver.drawString(displayDriver.width / 2, y + 10, "DEBUG MODE", &Font20, DISPLAY_COLOR_RED, TEXT_ALIGN_CENTER);
+#endif // DEBUG
 
 #ifdef GIT_VERSION
                     const char *version = GIT_VERSION;
-                    uint16_t versionW, versionH;
-
-                    displayDriver.getStringBounds(version, &Font12, &x, &y, &versionW, &versionH);
-
-                    displayDriver.drawString(displayDriver.width - displayDriver.padding, displayDriver.height - displayDriver.padding - versionH - 10, version, &Font12, DISPLAY_COLOR_BLACK, TEXT_ALIGN_RIGHT);
-#endif
+                    displayDriver.drawString(displayDriver.width - displayDriver.padding, displayDriver.height - displayDriver.padding - Font12.Height - 10, version, &Font12, DISPLAY_COLOR_BLACK, TEXT_ALIGN_RIGHT);
+#endif // GIT_VERSION
                   });
 }
 

@@ -19,6 +19,7 @@ public:
 
     void initialize() override;
     uint16_t drawString(uint16_t x, uint16_t y, const char *text, sFONT *font, DisplayColor color, TextAlign align = TEXT_ALIGN_CENTER) override;
+    u_int16_t drawString(uint16_t x, uint16_t y, String text, sFONT *font, DisplayColor color, TextAlign align);
     void drawChar(uint16_t x, uint16_t y, char c, sFONT *font, DisplayColor color);
     void clear() override;
     void drawPixel(uint16_t x, uint16_t y, DisplayColor color) override;

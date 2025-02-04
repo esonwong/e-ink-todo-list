@@ -28,8 +28,6 @@ void setup()
 
 #ifdef DEBUG
 
-  showTextOnScreenCenter("Debug\nMode");
-
   Serial.print("Sketch MD5: ");
   Serial.println(ESP.getSketchMD5());
 
@@ -151,10 +149,7 @@ void loop()
   if (now - runningValue.lastCheck > 60 && !updating)
   {
     updateFiles();
-
-#ifdef ENABLE_OTA
     updateFireWare();
-#endif
 
     updating = true;
     downloadAndDrawTodo();
