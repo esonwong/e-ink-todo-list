@@ -136,7 +136,7 @@ void DisplayDriver750::initialize()
   sendData(0x07);    // 数据间隔设置保持不变
 }
 
-void DisplayDriver750::drawString(uint16_t x, uint16_t y, const char *text, sFONT *font, DisplayColor color, TextAlign align)
+uint16_t DisplayDriver750::drawString(uint16_t x, uint16_t y, const char *text, sFONT *font, DisplayColor color, TextAlign align)
 {
   const char *textPtr = text;
   const char *lineStart = text;
@@ -166,7 +166,6 @@ void DisplayDriver750::drawString(uint16_t x, uint16_t y, const char *text, sFON
       break;
     case TEXT_ALIGN_LEFT:
     default:
-      // 左对齐不需要调整
       break;
     }
 
@@ -184,10 +183,13 @@ void DisplayDriver750::drawString(uint16_t x, uint16_t y, const char *text, sFON
     }
 
     // 移动到下一行
-    textPtr++; // 跳过换行符
+    textPtr++;
     lineStart = textPtr;
     currentY += font->Height;
   }
+
+  // 返回最后一行的 Y 坐标加上字体高度
+  return currentY + font->Height;
 }
 
 void DisplayDriver750::drawChar(uint16_t x, uint16_t y, char c, sFONT *font, DisplayColor color)
