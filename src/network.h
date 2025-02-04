@@ -68,12 +68,9 @@ void setSaveParamsCallback()
 void configPortalTimeoutCallback()
 {
   // Serial.println("Config portal timeout");
-  // initDisplay();
-  // display.fillScreen(GxEPD_WHITE);
-  // display.setTextColor(GxEPD_BLACK);
-  // display.setCursor(0, 0);
-  // display.println("Config portal timeout!");
-  // display.display();
+  display.display([](BaseDisplayDriver &displayDriver)
+                  { uint16_t y = displayDriver.drawString(displayDriver.width / 2, displayDriver.height / 5, "Config portal timeout!", &Font24, DISPLAY_COLOR_BLACK, TEXT_ALIGN_CENTER); 
+                    displayDriver.drawString(displayDriver.width / 2, y, "Press the button to restart", &Font20, DISPLAY_COLOR_BLACK, TEXT_ALIGN_CENTER); });
 }
 
 bool initWifiWithManager()
