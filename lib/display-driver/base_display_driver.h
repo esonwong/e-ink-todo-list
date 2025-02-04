@@ -83,6 +83,7 @@ public:
     static const uint16_t width;  // Width of the display.
     static const uint16_t height; // Height of the display.
     static const int pages;       // Number of pages in the display buffer.
+    uint16_t padding = 10;        // Padding attribute
 
 protected:
     std::vector<uint8_t> currentPageData;

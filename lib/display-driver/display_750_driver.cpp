@@ -140,7 +140,7 @@ uint16_t DisplayDriver750::drawString(uint16_t x, uint16_t y, const char *text, 
 {
   const char *textPtr = text;
   const char *lineStart = text;
-  uint16_t currentY = y;
+  uint16_t currentY = y + padding; // 添加 padding
 
   while (true)
   {
@@ -166,6 +166,7 @@ uint16_t DisplayDriver750::drawString(uint16_t x, uint16_t y, const char *text, 
       break;
     case TEXT_ALIGN_LEFT:
     default:
+      currentX += padding; // 添加 padding
       break;
     }
 

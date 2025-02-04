@@ -31,6 +31,10 @@ public:
     static const uint16_t width = 800;  // Width of the display.
     static const uint16_t height = 480; // Height of the display.
     static const int pages = 12;        // Number of pages in the display.
+    uint16_t padding = 10;              // 添加 padding 属性
+
+    void setPadding(uint16_t p) { padding = p; }
+    uint16_t getPadding() const { return padding; }
 
 private:
     SPISettings spiSettings = SPISettings(SPI_CLOCK_DIV4, MSBFIRST, SPI_MODE0);

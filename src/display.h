@@ -42,7 +42,7 @@ void showLaunchScreen()
 
                     displayDriver.getStringBounds(version, &Font12, &x, &y, &versionW, &versionH);
 
-                    displayDriver.drawString(displayDriver.width - 10, displayDriver.height - versionH - 10, version, &Font12, DISPLAY_COLOR_BLACK, TEXT_ALIGN_RIGHT);
+                    displayDriver.drawString(displayDriver.width - displayDriver.padding, displayDriver.height - displayDriver.padding - versionH - 10, version, &Font12, DISPLAY_COLOR_BLACK, TEXT_ALIGN_RIGHT);
 #endif
                   });
 }
