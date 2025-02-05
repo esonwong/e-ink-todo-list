@@ -235,26 +235,8 @@ void DisplayDriver750::drawChar(uint16_t x, uint16_t y, char c, sFONT *font, Dis
 
 void DisplayDriver750::clear()
 {
-  uint16_t Width = (width % 8 == 0) ? (width / 8) : (width / 8 + 1);
-  uint16_t Height = height;
-
-  auto fillScreen = [&](uint8_t value, uint8_t command)
-  {
-    sendCommand(command);
-    for (uint16_t y = 0; y < Height; y++)
-    {
-      for (uint16_t x = 0; x < Width; x++)
-      {
-        sendData(value);
-      }
-      delay(1);
-    }
-  };
-
-  fillScreen(0xff, 0x10); // clear black
-  fillScreen(0x00, 0x13); // clear red
-
-  refresh();
+  display([](BaseDisplayDriver &displayDriver)
+          { displayDriver.drawRectangle(0, 0, displayDriver.width, displayDriver.height, DISPLAY_COLOR_WHITE); });
 }
 
 void DisplayDriver750::drawPixel(uint16_t x, uint16_t y, DisplayColor color)
@@ -316,6 +298,7 @@ void DisplayDriver750::waitUntilIdle()
   int busy = 0;
   while (true)
   {
+    Serial.print(".");
     delay(100);
     busy = digitalRead(EPD_BUSY_PIN);
     if (busy == 1)
