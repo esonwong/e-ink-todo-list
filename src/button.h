@@ -31,6 +31,15 @@ void buttonClick()
   {
     Serial.println("Close Config Portal");
     wifiManager.stopConfigPortal();
+    display.clear();
+    return;
+  }
+
+  if (temporaryValue.isConfigTimeOut)
+  {
+    Serial.println("Reopen Config Portal");
+    wifiManager.startConfigPortal(AP_SSID.c_str(), AP_PASSWORD.c_str());
+    temporaryValue.isConfigTimeOut = false;
     return;
   }
 
@@ -41,6 +50,14 @@ void buttonClick()
     updating = true;
     downloadAndDrawTodo();
     updating = false;
+  }
+  else
+  {
+    Serial.println("Connect to WiFi");
+    if (initWifiWithManager())
+    {
+      setClock();
+    }
   }
 }
 

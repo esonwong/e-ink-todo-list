@@ -68,6 +68,10 @@ void setSaveParamsCallback()
 void configPortalTimeoutCallback()
 {
   // Serial.println("Config portal timeout");
+
+  // Modem sleep
+  WiFi.mode(WIFI_OFF);
+  temporaryValue.isConfigTimeOut = true;
   display.display([](BaseDisplayDriver &displayDriver)
                   { uint16_t y = displayDriver.drawString(displayDriver.width / 2, displayDriver.height / 5, "Config portal timeout!", &Font24, DISPLAY_COLOR_BLACK, TEXT_ALIGN_CENTER); 
                     displayDriver.drawString(displayDriver.width / 2, y, "Press the button to restart", &Font20, DISPLAY_COLOR_BLACK, TEXT_ALIGN_CENTER); });

@@ -131,17 +131,9 @@ void loop()
     return;
   }
 
-  // Network reconnecting
-  if (WiFi.status() != WL_CONNECTED)
+  if (temporaryValue.isConfigTimeOut)
   {
-    if (initWifiWithManager())
-    {
-      setClock();
-    }
-    else
-    {
-      return;
-    }
+    return;
   }
 
   // every 60 seconds

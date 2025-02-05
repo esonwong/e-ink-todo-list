@@ -9,6 +9,11 @@ struct Setting
   char apiUrl[200] = DEFAULT_API_URL;
 };
 
+struct TemporaryValue
+{
+  bool isConfigTimeOut = false;
+};
+
 struct RunningValue
 {
   char todoLastModified[30] = "";
@@ -242,5 +247,7 @@ void initStore()
   strcpy(setting.apiKey, API_KEY);
 #endif
 }
+
+TemporaryValue temporaryValue = TemporaryValue();
 
 #endif // STORE_H
