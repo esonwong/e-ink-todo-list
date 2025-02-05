@@ -146,7 +146,7 @@ void loop()
 
   // every 60 seconds
   time_t now = time(nullptr);
-  if (now - runningValue.lastCheck > 60 && !updating)
+  if (now - runningValue.displayContentLastCheckTime > 60 && !updating)
   {
     updateFiles();
     updateFireWare();

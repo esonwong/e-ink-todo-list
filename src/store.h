@@ -12,7 +12,7 @@ struct Setting
 struct RunningValue
 {
   char todoLastModified[30] = "";
-  time_t lastCheck = 0;
+  time_t displayContentLastCheckTime = 0;
 };
 
 Setting setting;

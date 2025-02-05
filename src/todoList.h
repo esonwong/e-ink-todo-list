@@ -156,7 +156,7 @@ void displayToScreen(String file = cachedFileName, uint16_t w = 0, uint16_t h = 
 void downloadAndDrawTodo()
 {
 
-  runningValue.lastCheck = time(nullptr);
+  runningValue.displayContentLastCheckTime = time(nullptr);
 
   if (wifiManager.getConfigPortalActive())
   {
