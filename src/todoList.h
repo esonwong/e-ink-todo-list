@@ -191,6 +191,8 @@ void downloadAndDrawTodo()
     client.setCertStore(&certStore);
   }
 
+  client.setTimeout(30000);
+
   String savedTodoLastModified = runningValue.todoLastModified;
 
   Serial.println("Last-Modified: " + savedTodoLastModified);
