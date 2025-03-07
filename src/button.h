@@ -7,6 +7,7 @@
 #include "store.h"
 
 OneButton button;
+bool longPressActionDone = false; // 添加标志变量来防止长按操作重复执行
 
 void onWakeUp()
 {
@@ -67,16 +68,36 @@ void buttonDoubleClick()
   // TODO: Switch to the next mode
 }
 
-void buttonLongPress()
+void buttonLongPressStart()
 {
-  Serial.println("Button long pressed");
-  Serial.println("Erasing configuration、persistent value and restarting...");
-  wifiManager.resetSettings();
-  removePersistentValue();
-  ESP.restart();
+  Serial.println("Button long press start");
+  longPressActionDone = false; // 重置标志变量
 }
 
-// Handler function for MultiClick the button with self pointer as a parameter
+void buttonLongDuringPress()
+{
+  Serial.printf("\rButton long pressed for ");
+  Serial.print(button.getPressedMs());
+  Serial.print(" ms");
+
+  if (button.getPressedMs() > 6000 && !longPressActionDone)
+  {
+    Serial.println("Button long pressed");
+    Serial.println("Erasing configuration、persistent value and resetting WiFi");
+    removePersistentValue();
+    // wifiManager.resetSettings();
+    wifiManager.startConfigPortal(AP_SSID.c_str(), AP_PASSWORD.c_str());
+    longPressActionDone = true; // 设置标志，防止重复执行
+
+    Serial.println();
+  }
+}
+
+void buttonLongPressStop()
+{
+  Serial.println("Button long press stop");
+}
+
 void buttonMultiClick()
 {
   Serial.print("Button multi clicked: ");
@@ -121,14 +142,14 @@ OneButton initButton()
     button = OneButton(BUTTON_PIN);
   }
 
-  button.setPressMs(10000);
+  // button.setPressMs(8000);
 
   button.attachClick(buttonClick);
   button.attachDoubleClick(buttonDoubleClick);
-  button.attachLongPressStart(buttonLongPress);
-
-  // MultiClick button event attachment with self pointer as a parameter
   button.attachMultiClick(buttonMultiClick);
+  button.attachLongPressStart(buttonLongPressStart);
+  button.attachDuringLongPress(buttonLongDuringPress);
+  button.attachLongPressStop(buttonLongPressStop);
 
   return button;
 }

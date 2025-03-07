@@ -31,27 +31,26 @@ void configModeCallback(WiFiManager *myWiFiManager)
 
 void preSaveConfigCallback()
 {
-  Serial.println("Should save network config");
+  Serial.println("[Network] preSaveConfigCallback");
+
+  String displayText = "Trying to connect to new WiFi";
+  Serial.println(displayText);
+  showTextOnScreenCenter(displayText, &Font20, DISPLAY_COLOR_BLACK);
 }
 
 // This gets called when custom parameters have been set AND a connection has been established.
 void saveConfigCallback()
 {
-  Serial.println("Should save network config");
-  Serial.print("WiFi SSID:");
-  Serial.println(wifiManager.getWiFiSSID());
-  Serial.print("WiFi Password:");
-  Serial.println(wifiManager.getWiFiPass());
-
+  Serial.println("[Network] saveConfigCallback");
+  String displayText = "Connected to WiFi: " + String(wifiManager.getWiFiSSID());
+  Serial.println(displayText);
+  showTextOnScreenCenter(displayText, &Font20, DISPLAY_COLOR_BLACK);
   setClock();
-
-  updateFiles();
-  updateFireWare();
 }
 
 void setSaveParamsCallback()
 {
-  Serial.println("Should save params");
+  Serial.println("[Network] setSaveParamsCallback");
   Serial.print("API Key:");
   Serial.println(apiKey.getValue());
   Serial.print("API URL:");
