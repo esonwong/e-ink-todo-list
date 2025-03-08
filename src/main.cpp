@@ -72,6 +72,7 @@ void setup()
 
   initStore();
   initButton();
+  initWifiWithManager();
 
 #if defined(WIFI_SSID) && defined(WIFI_PASS)
   // For debugging
@@ -81,12 +82,6 @@ void setup()
   Serial.println(WIFI_PASS);
   wifiManager.preloadWiFi(WIFI_SSID, WIFI_PASS);
 #endif // WIFI_SSID && WIFI_PASS
-
-  if (initWifiWithManager())
-  {
-    setClock();
-    // showTextOnScreenCenter("Network Connected");
-  }
 
 #ifdef ENABLE_PCB_TEST
   String testInfo = "";
@@ -124,17 +119,7 @@ void setup()
 void loop()
 {
   buttonLoop();
-  wifiManager.process();
-
-  if (wifiManager.getConfigPortalActive())
-  {
-    return;
-  }
-
-  if (temporaryValue.isConfigTimeOut)
-  {
-    return;
-  }
+  wifiLoop();
 
   // every 60 seconds
   time_t now = time(nullptr);

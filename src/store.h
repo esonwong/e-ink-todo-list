@@ -11,7 +11,6 @@ struct Setting
 
 struct TemporaryValue
 {
-  bool isConfigTimeOut = false;
 };
 
 struct RunningValue

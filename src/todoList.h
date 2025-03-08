@@ -158,9 +158,15 @@ void downloadAndDrawTodo()
 
   runningValue.displayContentLastCheckTime = time(nullptr);
 
-  if (wifiManager.getConfigPortalActive())
+  // if (wifiManager.getConfigPortalActive())
+  // {
+  //   Serial.println("Config portal active");
+  //   return;
+  // }
+
+  if (WiFi.status() != WL_CONNECTED)
   {
-    Serial.println("Config portal active");
+    Serial.println("WiFi not connected");
     return;
   }
 

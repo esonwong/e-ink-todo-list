@@ -36,14 +36,6 @@ void buttonClick()
     return;
   }
 
-  if (temporaryValue.isConfigTimeOut)
-  {
-    Serial.println("Reopen Config Portal");
-    wifiManager.startConfigPortal(AP_SSID.c_str(), AP_PASSWORD.c_str());
-    temporaryValue.isConfigTimeOut = false;
-    return;
-  }
-
   if (WiFi.status() == WL_CONNECTED)
   {
     Serial.println("force update todo");
@@ -54,11 +46,8 @@ void buttonClick()
   }
   else
   {
-    Serial.println("Connect to WiFi");
-    if (initWifiWithManager())
-    {
-      setClock();
-    }
+    Serial.println("Start Config Portal");
+    wifiManager.autoConnect(AP_SSID.c_str(), AP_PASSWORD.c_str());
   }
 }
 
@@ -85,7 +74,7 @@ void buttonLongDuringPress()
     Serial.println("Button long pressed");
     Serial.println("Erasing configuration、persistent value and resetting WiFi");
     removePersistentValue();
-    // wifiManager.resetSettings();
+    wifiManager.resetSettings();
     wifiManager.startConfigPortal(AP_SSID.c_str(), AP_PASSWORD.c_str());
     longPressActionDone = true; // 设置标志，防止重复执行
 
@@ -116,6 +105,11 @@ void buttonMultiClick()
     {
       Serial.println("Disconnecting WiFi");
       wifiManager.disconnect();
+    }
+    else
+    {
+      Serial.println("Connecting WiFi");
+      wifiManager.autoConnect(AP_SSID.c_str(), AP_PASSWORD.c_str());
     }
   default:
     break;
