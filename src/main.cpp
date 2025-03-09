@@ -65,15 +65,6 @@ void setup()
   savePersistentValue("bool", false);
 #endif
 
-#endif // DEBUG
-
-  Serial.print("API URL: ");
-  Serial.println(setting.apiUrl);
-
-  initStore();
-  initButton();
-  initWifiWithManager();
-
 #if defined(WIFI_SSID) && defined(WIFI_PASS)
   // For debugging
   Serial.print("WiFi SSID: ");
@@ -81,7 +72,17 @@ void setup()
   Serial.print("WiFi Password: ");
   Serial.println(WIFI_PASS);
   wifiManager.preloadWiFi(WIFI_SSID, WIFI_PASS);
+  wifiManager.autoConnect(AP_SSID.c_str(), AP_PASSWORD.c_str());
 #endif // WIFI_SSID && WIFI_PASS
+
+  Serial.print("API URL: ");
+  Serial.println(setting.apiUrl);
+
+#endif // DEBUG
+
+  initStore();
+  initButton();
+  initWifiWithManager();
 
 #ifdef ENABLE_PCB_TEST
   String testInfo = "";
@@ -105,15 +106,12 @@ void setup()
 
   // persistent value
   savePersistentValue("PCB_TEST", "PCB test persistent value is OK!");
-  testInfo += "Persistent Value: " + String(getPersistentValue("PCB_TEST", "PCB test persistent value is not OK!")) + "\n";
+  testInfo += "Persistent Value: \n" + String(getPersistentValue("PCB_TEST", "PCB test persistent value is not OK!")) + "\n";
 
   showTextOnScreenCenter(testInfo);
 
   delay(5 * 60 * 1000);
 #endif // ENABLE_PCB_TEST
-
-  Serial.print("Free memory: ");
-  Serial.println(ESP.getFreeHeap());
 }
 
 void loop()

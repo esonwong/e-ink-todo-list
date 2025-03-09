@@ -45,5 +45,17 @@ void showLaunchScreen()
 void showTextOnScreenCenter(String text, sFONT *font = &Font24, DisplayColor color = DISPLAY_COLOR_BLACK)
 {
   display.display([text, font, color](BaseDisplayDriver &displayDriver)
-                  { displayDriver.drawString(displayDriver.width / 2, displayDriver.height / 2 - font->Height, text, font, color, TEXT_ALIGN_CENTER); });
+                  { 
+                    uint16_t x = displayDriver.width / 2;
+                    uint16_t y = displayDriver.height / 2;
+                    uint16_t w = 0;
+                    uint16_t h = 0;
+                    
+                    // 计算文本尺寸
+                    displayDriver.getStringBounds(text.c_str(), font, &x, &y, &w, &h);
+                    
+                    // 调整y坐标使文本块垂直居中
+                    y = (displayDriver.height - h) / 2;
+                    
+                    displayDriver.drawString(displayDriver.width / 2, y, text, font, color, TEXT_ALIGN_CENTER); });
 }
