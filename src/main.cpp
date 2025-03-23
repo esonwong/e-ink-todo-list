@@ -19,8 +19,10 @@ void setup()
   Serial.println();
   Serial.println("Steup Start!!!!!");
 
+  DeviceID = String(ESP.getChipId());
+
   Serial.print("Device ID: ");
-  Serial.println(ESP.getChipId());
+  Serial.println(DeviceID);
 
   // delay(500);
   showLaunchScreen();
@@ -40,8 +42,6 @@ void setup()
     Serial.println("An Error has occurred while mounting LittleFS");
     return;
   }
-
-  DeviceID = String(ESP.getChipId());
 
   // Print chip information
   Serial.print("Device ID: ");
