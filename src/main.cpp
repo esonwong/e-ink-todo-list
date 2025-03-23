@@ -18,6 +18,10 @@ void setup()
   // Serial.setDebugOutput(true);
   Serial.println();
   Serial.println("Steup Start!!!!!");
+
+  Serial.print("Device ID: ");
+  Serial.println(ESP.getChipId());
+
   // delay(500);
   showLaunchScreen();
 
