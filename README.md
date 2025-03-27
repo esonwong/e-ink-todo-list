@@ -24,3 +24,16 @@
 - [x] 支持 ESP8266
 - [x] 支持微雪第一代 7.5 寸墨水屏
 - [x] 缓存待办事项
+
+
+## 开发
+
+```sh
+ pio run --target erase --target upload --target monitor --environment development
+```
+
+## Production
+
+```sh
+ pio run --target erase --target upload --target monitor --environment production
+```
