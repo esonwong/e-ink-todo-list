@@ -26,11 +26,6 @@
 - [x] 缓存待办事项
 
 
-## 开发
-
-```sh
- pio run --target erase --target upload --target monitor --environment development
-```
 
 ## Production
 
