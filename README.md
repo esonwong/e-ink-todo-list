@@ -16,6 +16,9 @@
 - [ ] 支持 ESP8266 电池电压检测
 - [ ] 配置界面风格
 - [ ] 连接配置 AP 的二维码
+- [ ] 支持设置字体大小
+- [ ] 支持非 Todo List 模式
+- [ ] 固定 API
 - [x] CI/CD 自动发布固件
 - [x] 自动更新固件
 - [x] 自动更新 SSL/TLS 根证书
@@ -30,5 +33,5 @@
 ## Production
 
 ```sh
- pio run --target erase --target upload --target monitor --environment production
+pio run --target erase --target upload --target monitor --environment production
 ```
