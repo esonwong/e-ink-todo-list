@@ -179,6 +179,14 @@ void downloadAndDrawTodo()
   BearSSL::CertStore certStore;
   BearSSL::WiFiClientSecure client;
 
+  // 添加WiFi连接状态日志
+  Serial.println("WiFi连接状态:");
+  Serial.printf("SSID: %s\n", WiFi.SSID().c_str());
+  Serial.printf("IP地址: %s\n", WiFi.localIP().toString().c_str());
+  Serial.printf("DNS服务器: %s\n", WiFi.dnsIP().toString().c_str());
+  Serial.printf("网关: %s\n", WiFi.gatewayIP().toString().c_str());
+  Serial.printf("信号强度(RSSI): %d dBm\n", WiFi.RSSI());
+
   if (!LittleFS.begin())
   {
     Serial.println("An Error has occurred while mounting LittleFS");
@@ -210,23 +218,117 @@ void downloadAndDrawTodo()
   Serial.printf("Authorization: Bearer %s\n", apikey);
 
   HTTPClient https;
+
+  // 设置更详细的调试输出
+  Serial.println("===== HTTP请求开始 =====");
+  Serial.printf("连接到URL: %s\n", url.c_str());
+
   https.begin(client, url);
+
+  Serial.println("请求头信息:");
   https.addHeader("If-Modified-Since", savedTodoLastModified);
+  Serial.printf(" - If-Modified-Since: %s\n", savedTodoLastModified.c_str());
+
   https.addHeader("Authorization", "Bearer " + String(apikey));
+  Serial.printf(" - Authorization: Bearer %s\n", apikey);
+
   https.addHeader("X-Device-Id", DeviceID);
+  Serial.printf(" - X-Device-Id: %s\n", DeviceID.c_str());
+
 #ifdef GIT_VERSION
   https.addHeader("X-Device-Firmware-Version", GIT_VERSION);
+  Serial.printf(" - X-Device-Firmware-Version: %s\n", GIT_VERSION);
 #endif
 
   const char *headerKeys[] = {"Content-Picture-Width", "Content-Picture-Height", "API-Version", "Last-Modified"};
   int headerKeysSize = sizeof(headerKeys) / sizeof(char *);
   https.collectHeaders(headerKeys, headerKeysSize);
 
+  Serial.println("===== 开始发送GET请求 =====");
+  unsigned long requestStartTime = millis();
   int httpCode = https.GET();
+  unsigned long requestEndTime = millis();
   int contentLength = https.getSize();
 
-  Serial.printf("HTTPS GET: %d\n", httpCode);
+  Serial.println("===== HTTP响应信息 =====");
+  Serial.printf("请求耗时: %lu 毫秒\n", requestEndTime - requestStartTime);
+  Serial.printf("HTTP状态码: %d\n", httpCode);
   Serial.printf("Content-Length: %d\n", contentLength);
+
+  // 针对不同HTTP状态码提供更详细的诊断信息
+  if (httpCode == -1)
+  {
+    Serial.println("\n===== HTTP连接错误详细诊断 =====");
+    Serial.printf("HTTPS连接失败，错误: %s\n", https.errorToString(httpCode).c_str());
+
+    // 获取SSL错误信息
+    int sslError = client.getLastSSLError();
+    Serial.printf("SSL错误代码: %d\n", sslError);
+
+    // SSL错误代码解释
+    if (sslError > 0)
+    {
+      Serial.println("SSL错误说明:");
+      switch (sslError)
+      {
+      case 1:
+        Serial.println(" - X509_NOT_TRUSTED: 证书不受信任");
+        break;
+      case 2:
+        Serial.println(" - X509_REQUEST_TIMEOUT: 证书验证超时");
+        break;
+      case 3:
+        Serial.println(" - NOT_ENOUGH_MEMORY: 内存不足");
+        break;
+      case 4:
+        Serial.println(" - ERR_RSA_DATA_LEN: RSA数据长度错误");
+        break;
+      default:
+        Serial.println(" - 未知SSL错误");
+      }
+    }
+
+    // 网络连接诊断
+    Serial.println("\n网络连接诊断:");
+    Serial.printf(" - WiFi连接状态: %s\n", WiFi.status() == WL_CONNECTED ? "已连接" : "未连接");
+    Serial.printf(" - 信号强度(RSSI): %d dBm\n", WiFi.RSSI());
+    Serial.printf(" - 目标URL: %s\n", url.c_str());
+    Serial.printf(" - DNS解析: 尝试解析域名...\n");
+
+    // 提取域名进行测试性DNS解析
+    String domain = url;
+    if (domain.startsWith("https://"))
+    {
+      domain = domain.substring(8);
+    }
+    else if (domain.startsWith("http://"))
+    {
+      domain = domain.substring(7);
+    }
+    int pathIndex = domain.indexOf('/');
+    if (pathIndex > 0)
+    {
+      domain = domain.substring(0, pathIndex);
+    }
+
+    IPAddress ip;
+    Serial.printf(" - 尝试解析域名: %s\n", domain.c_str());
+    if (WiFi.hostByName(domain.c_str(), ip))
+    {
+      Serial.printf(" - DNS解析成功: %s\n", ip.toString().c_str());
+    }
+    else
+    {
+      Serial.println(" - DNS解析失败!");
+    }
+
+    // 内存状态
+    Serial.printf(" - 可用内存: %d 字节\n", ESP.getFreeHeap());
+
+    https.end();
+    LittleFS.end();
+    return;
+  }
 
   Serial.print("Free memory: ");
   Serial.println(ESP.getFreeHeap());

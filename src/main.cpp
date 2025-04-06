@@ -15,7 +15,7 @@ void setup()
 
   Serial.begin(115200);
   delay(2000);
-  // Serial.setDebugOutput(true);
+  Serial.setDebugOutput(true); // 启用ESP8266的调试输出
   Serial.println();
   Serial.println("Steup Start!!!!!");
 
