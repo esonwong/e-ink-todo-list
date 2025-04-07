@@ -217,6 +217,12 @@ void downloadAndDrawTodo()
     Serial.println("TLS version set to TLS 1.2 only");
   }
 
+  // 增加SSL缓冲区大小，提高TLS连接成功率
+  client.setBufferSizes(4096, 4096); // 增加输入输出缓冲区
+  Serial.println("SSL buffer sizes increased to 4096 bytes");
+
+  client.setX509Time(time(nullptr));
+
   client.setTimeout(30000);
   Serial.println("Client timeout set to 30000ms");
 
@@ -236,26 +242,56 @@ void downloadAndDrawTodo()
   Serial.println("===== HTTP请求开始 =====");
   Serial.printf("连接到URL: %s\n", url.c_str());
 
-  https.begin(client, url);
+  // 添加重试逻辑
+  bool connectionSuccess = false;
+  int retryCount = 0;
+  const int maxRetries = 3;
 
-  Serial.println("请求头信息:");
-  https.addHeader("If-Modified-Since", savedTodoLastModified);
-  Serial.printf(" - If-Modified-Since: %s\n", savedTodoLastModified.c_str());
+  while (!connectionSuccess && retryCount < maxRetries)
+  {
+    if (retryCount > 0)
+    {
+      Serial.printf("重试连接 (%d/%d)...\n", retryCount, maxRetries);
+      delay(1000 * retryCount); // 逐次增加等待时间
+    }
 
-  https.addHeader("Authorization", "Bearer " + String(apikey));
-  Serial.printf(" - Authorization: Bearer %s\n", apikey);
+    connectionSuccess = https.begin(client, url);
+    if (!connectionSuccess)
+    {
+      Serial.println("HTTPS连接初始化失败，准备重试...");
+      client.flush();
+      delay(500);
+      retryCount++;
+      continue;
+    }
 
-  https.addHeader("X-Device-Id", DeviceID);
-  Serial.printf(" - X-Device-Id: %s\n", DeviceID.c_str());
+    Serial.println("请求头信息:");
+    https.addHeader("If-Modified-Since", savedTodoLastModified);
+    Serial.printf(" - If-Modified-Since: %s\n", savedTodoLastModified.c_str());
+
+    https.addHeader("Authorization", "Bearer " + String(apikey));
+    Serial.printf(" - Authorization: Bearer %s\n", apikey);
+
+    https.addHeader("X-Device-Id", DeviceID);
+    Serial.printf(" - X-Device-Id: %s\n", DeviceID.c_str());
 
 #ifdef GIT_VERSION
-  https.addHeader("X-Device-Firmware-Version", GIT_VERSION);
-  Serial.printf(" - X-Device-Firmware-Version: %s\n", GIT_VERSION);
+    https.addHeader("X-Device-Firmware-Version", GIT_VERSION);
+    Serial.printf(" - X-Device-Firmware-Version: %s\n", GIT_VERSION);
 #endif
 
-  const char *headerKeys[] = {"Content-Picture-Width", "Content-Picture-Height", "API-Version", "Last-Modified"};
-  int headerKeysSize = sizeof(headerKeys) / sizeof(char *);
-  https.collectHeaders(headerKeys, headerKeysSize);
+    const char *headerKeys[] = {"Content-Picture-Width", "Content-Picture-Height", "API-Version", "Last-Modified"};
+    int headerKeysSize = sizeof(headerKeys) / sizeof(char *);
+    https.collectHeaders(headerKeys, headerKeysSize);
+    break; // 如果成功初始化连接，跳出循环
+  }
+
+  if (!connectionSuccess)
+  {
+    Serial.println("无法建立HTTPS连接，已达到最大重试次数");
+    LittleFS.end();
+    return;
+  }
 
   Serial.println("===== 开始发送GET请求 =====");
   unsigned long requestStartTime = millis();
