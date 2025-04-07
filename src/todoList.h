@@ -199,13 +199,26 @@ void downloadAndDrawTodo()
     Serial.println("No certs found. Need to restart to get certs. It will be more secure for your data.");
     LittleFS.end();
     client.setInsecure();
+    Serial.println("Client set to insecure mode to bypass certificate validation");
   }
   else
   {
     client.setCertStore(&certStore);
   }
 
+  // 增加TLS版本限制，尝试不同的TLS版本
+  if (!client.setSSLVersion(BR_TLS12, BR_TLS12))
+  {
+    Serial.println("Failed to set TLS 1.2, falling back to default TLS version");
+    client.setSSLVersion(BR_TLS10, BR_TLS12); // Allow fallback to TLS 1.0, 1.1, or 1.2
+  }
+  else
+  {
+    Serial.println("TLS version set to TLS 1.2 only");
+  }
+
   client.setTimeout(30000);
+  Serial.println("Client timeout set to 30000ms");
 
   String savedTodoLastModified = runningValue.todoLastModified;
 
@@ -265,6 +278,11 @@ void downloadAndDrawTodo()
     int sslError = client.getLastSSLError();
     Serial.printf("SSL错误代码: %d\n", sslError);
 
+    // 尝试获取更详细的错误信息
+    char error_buf[100];
+    client.getLastSSLError(error_buf, sizeof(error_buf));
+    Serial.printf("SSL详细错误: %s\n", error_buf);
+
     // SSL错误代码解释
     if (sslError > 0)
     {
@@ -322,8 +340,21 @@ void downloadAndDrawTodo()
       Serial.println(" - DNS解析失败!");
     }
 
-    // 内存状态
-    Serial.printf(" - 可用内存: %d 字节\n", ESP.getFreeHeap());
+    // 尝试不同的连接方式（HTTP作为备用）
+    Serial.println("\n尝试HTTP连接作为备用测试:");
+    String httpUrl = url;
+    if (httpUrl.startsWith("https://"))
+    {
+      httpUrl.replace("https://", "http://");
+      Serial.printf("尝试HTTP URL: %s\n", httpUrl.c_str());
+
+      WiFiClient plainClient;
+      HTTPClient httpTest;
+      httpTest.begin(plainClient, httpUrl);
+      int httpTestCode = httpTest.GET();
+      Serial.printf("HTTP测试状态码: %d\n", httpTestCode);
+      httpTest.end();
+    }
 
     https.end();
     LittleFS.end();
