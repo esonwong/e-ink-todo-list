@@ -108,7 +108,7 @@ void DisplayDriver750::initialize()
   sendData(0x3f);
 
   sendCommand(0x04); // POWER ON
-  delay(100);
+  delay(200);
 
   waitUntilIdle(); // waiting for the electronic paper IC to release the idle signal
 
@@ -132,8 +132,9 @@ void DisplayDriver750::initialize()
   sendData(0x22);
 
   sendCommand(0X50); // VCOM AND DATA INTERVAL SETTING
-  sendData(0x11);    //
-  sendData(0x07);    // 数据间隔设置保持不变
+  sendData(0x11);    // VCOM 设定
+  // sendData(0x13); // 替代0x11，提升对比度
+  sendData(0x07); // 数据间隔/边缘控制
 }
 
 uint16_t DisplayDriver750::drawString(uint16_t x, uint16_t y, const char *text, sFONT *font, DisplayColor color, TextAlign align)
@@ -295,6 +296,7 @@ void DisplayDriver750::drawRectangle(uint16_t x1, uint16_t y1, uint16_t x2, uint
 void DisplayDriver750::waitUntilIdle()
 {
   Serial.println("Wait utill e-Paper busy release");
+  delay(200); // !!!The delay here is necessary, 200uS at least!!!
   int busy = 0;
   while (true)
   {
@@ -311,9 +313,8 @@ void DisplayDriver750::refresh()
 {
   Serial.println("Refresh display");
   sendCommand(0x12); // DISPLAY REFRESH
-  delay(100);        // !!!The delay here is necessary, 200uS at least!!!
   waitUntilIdle();   // waiting for the electronic paper IC to release the idle signal
-
+  delay(300);        // wait for the display to refresh
   state = DISPLAY_DRIVER_IDLE;
 }
 

@@ -27,6 +27,8 @@ void setup()
   // delay(500);
   showLaunchScreen();
 
+  display.clear();
+
 #ifdef GIT_VERSION
   Serial.print("Version: ");
   Serial.println(GIT_VERSION);
