@@ -37,7 +37,7 @@ void showLaunchScreen()
 
 #ifdef GIT_VERSION
                     const char *version = GIT_VERSION;
-                    displayDriver.drawString(displayDriver.width - displayDriver.padding, displayDriver.height - displayDriver.padding - Font12.Height - 10, version, &Font12, DISPLAY_COLOR_BLACK, TEXT_ALIGN_RIGHT);
+                    displayDriver.drawString(displayDriver.width - displayDriver.padding, displayDriver.height - displayDriver.padding - Font12.Height - 10, version, &Font12, DISPLAY_COLOR_RED, TEXT_ALIGN_RIGHT);
 #endif // GIT_VERSION
                   });
 }
@@ -45,17 +45,22 @@ void showLaunchScreen()
 void showTextOnScreenCenter(String text, sFONT *font = &Font24, DisplayColor color = DISPLAY_COLOR_BLACK)
 {
   display.display([text, font, color](BaseDisplayDriver &displayDriver)
-                  { 
+                  {
                     uint16_t x = displayDriver.width / 2;
                     uint16_t y = displayDriver.height / 2;
                     uint16_t w = 0;
                     uint16_t h = 0;
-                    
+
                     // 计算文本尺寸
                     displayDriver.getStringBounds(text.c_str(), font, &x, &y, &w, &h);
-                    
+
                     // 调整y坐标使文本块垂直居中
                     y = (displayDriver.height - h) / 2;
-                    
-                    displayDriver.drawString(displayDriver.width / 2, y, text, font, color, TEXT_ALIGN_CENTER); });
+
+                    displayDriver.drawString(displayDriver.width / 2, y, text, font, color, TEXT_ALIGN_CENTER);
+                    // #ifdef GIT_VERSION
+                    //                     const char *version = GIT_VERSION;
+                    //                     displayDriver.drawString(displayDriver.width - displayDriver.padding, displayDriver.height - displayDriver.padding - Font12.Height - 10, version, &Font12, DISPLAY_COLOR_RED, TEXT_ALIGN_RIGHT);
+                    // #endif // GIT_VERSION
+                  });
 }
