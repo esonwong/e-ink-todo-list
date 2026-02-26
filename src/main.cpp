@@ -25,6 +25,7 @@ void setup()
   Serial.println(DeviceID);
 
   // delay(500);
+
   showLaunchScreen();
 
   display.clear();
