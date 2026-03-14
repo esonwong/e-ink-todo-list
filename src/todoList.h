@@ -279,7 +279,7 @@ void downloadAndDrawTodo()
   Serial.print("Free memory: ");
   Serial.println(ESP.getFreeHeap());
 
-  const char *apiRoot = apiUrl.getValue();
+  const char *apiRoot = DEFAULT_API_URL;
   const char *apikey = apiKey.getValue();
 
   BearSSL::CertStore certStore;

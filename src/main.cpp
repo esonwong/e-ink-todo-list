@@ -82,8 +82,6 @@ void setup()
   wifiManager.autoConnect(AP_SSID.c_str(), AP_PASSWORD.c_str());
 #endif // WIFI_SSID && WIFI_PASS
 
-  Serial.print("API URL: ");
-  Serial.println(setting.apiUrl);
 
 #endif // DEBUG
 

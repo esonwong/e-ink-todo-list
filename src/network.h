@@ -12,7 +12,6 @@ WiFiManager wifiManager;
 bool isTringToConnectWiFi = false;
 
 WiFiManagerParameter apiKey("apiKey", "API Key", "", 41);
-WiFiManagerParameter apiUrl("apiUrl", "API URL", "", 200);
 
 void configModeCallback(WiFiManager *myWiFiManager)
 {
@@ -73,11 +72,8 @@ void setSaveParamsCallback()
   Serial.println("[Network] setSaveParamsCallback");
   Serial.print("API Key:");
   Serial.println(apiKey.getValue());
-  Serial.print("API URL:");
-  Serial.println(apiUrl.getValue());
 
   strcpy(setting.apiKey, apiKey.getValue());
-  strcpy(setting.apiUrl, apiUrl.getValue());
 
   saveSetting(setting);
 
@@ -103,14 +99,10 @@ void initWifiWithManager()
 
   Serial.println("API Key: " + String(setting.apiKey));
   Serial.println("API Key Length: " + String(strlen(setting.apiKey)));
-  Serial.println("API URL: " + String(setting.apiUrl));
-  Serial.println("API URL Length: " + String(strlen(setting.apiUrl)));
 
   apiKey.setValue(setting.apiKey, 41);
-  apiUrl.setValue(setting.apiUrl, 200);
 
   wifiManager.addParameter(&apiKey);
-  wifiManager.addParameter(&apiUrl);
 
   wifiManager.setConfigPortalBlocking(false);
   wifiManager.setConfigPortalTimeout(600);

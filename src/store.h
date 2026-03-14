@@ -6,7 +6,6 @@
 struct Setting
 {
   char apiKey[41] = "";
-  char apiUrl[200] = DEFAULT_API_URL;
 };
 
 struct TemporaryValue
@@ -39,7 +38,6 @@ void saveSetting(Setting setting = setting)
 
   JsonDocument settingJson;
   settingJson["apiKey"] = setting.apiKey;
-  settingJson["apiUrl"] = setting.apiUrl;
 
   serializeJson(settingJson, file);
   file.close();
@@ -73,7 +71,6 @@ Setting loadSetting()
   }
 
   strlcpy(setting.apiKey, settingJson["apiKey"] | "", sizeof(setting.apiKey));
-  strlcpy(setting.apiUrl, settingJson["apiUrl"] | DEFAULT_API_URL, sizeof(setting.apiUrl));
 
   file.close();
   LittleFS.end();
