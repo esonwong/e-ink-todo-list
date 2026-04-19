@@ -78,6 +78,20 @@ jobs:
       - name: Run host unit tests
         run: make -C rtos/test/host
 
+      # The OTA route (einktodo app/api/update/rtos/firmware) answers 304 only
+      # when the device's X-Device-Firmware-Version equals the pinned tag, and
+      # that header is PROJECT_VER = `git describe --tags --always --dirty`
+      # (rtos/CMakeLists.txt). If describe does not resolve to the tag here,
+      # every device would re-download and re-flash on every check.
+      - name: Assert PROJECT_VER will equal the tag
+        run: |
+          DESCRIBED="$(git describe --tags --always --dirty)"
+          echo "git describe: ${DESCRIBED} (tag ${GITHUB_REF_NAME})"
+          if [ "${DESCRIBED}" != "${GITHUB_REF_NAME}" ]; then
+            echo "::error::git describe gives '${DESCRIBED}', not the tag '${GITHUB_REF_NAME}' — OTA negotiation would never reach 304"
+            exit 1
+          fi
+
       # Production overlay build. v3.4's project.cmake takes a single
       # SDKCONFIG_DEFAULTS file; rtos/CMakeLists.txt merges the semicolon list
       # into one generated file, so the documented incantation works verbatim.
