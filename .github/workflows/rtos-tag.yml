@@ -47,10 +47,19 @@ jobs:
 
       # Clone the SDK exactly like the local env (branch v3.4, recursive) so
       # the build resolves against the same mbedtls / FreeRTOS submodules.
+      # Not --recursive: libcoap's nested ext/tinydtls submodule still points at
+      # git.eclipse.org, which now redirects to GitHub and makes git abort the
+      # whole clone. The firmware never enables CoAP (CONFIG_ENABLE_COAP unset)
+      # and the local build runs with that directory empty, so init only the
+      # top-level submodules the build needs.
       - name: Clone ESP8266_RTOS_SDK v3.4
         run: |
-          git clone --recursive --depth 1 --branch v3.4 \
+          git clone --depth 1 --branch v3.4 \
             https://github.com/espressif/ESP8266_RTOS_SDK.git "$HOME/esp/ESP8266_RTOS_SDK"
+          cd "$HOME/esp/ESP8266_RTOS_SDK"
+          git submodule update --init --depth 1 \
+            components/mbedtls/mbedtls components/lwip/lwip components/json/cJSON \
+            components/mqtt/esp-mqtt components/coap/libcoap
 
       - name: Cache toolchain + pip
         uses: actions/cache@v4
