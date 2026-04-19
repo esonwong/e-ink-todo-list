@@ -35,3 +35,29 @@
 ```sh
 pio run --target erase --target upload --target monitor --environment production
 ```
+
+## 网络兜底
+
+设备默认优先访问主域名 API；当主入口不可达时，会自动按顺序尝试编译期配置的 HTTPS fallback 入口。
+
+当前实现特性：
+
+- 主域名继续使用 CertStore CA 校验
+- fallback IP 使用证书指纹校验
+- 自动记住最近一次成功的入口，并在下一次请求时优先尝试
+- 显示内容拉取、资源更新和 OTA 更新共用同一套 fallback 逻辑
+
+`platformio.ini` 中提供了 fallback 编译参数示例：
+
+```ini
+; -D FALLBACK_BASE_URL_1="https://107.173.82.8:16845"
+; -D FALLBACK_TLS_FINGERPRINT_1="AA BB CC DD EE FF 00 11 22 33 44 55 66 77 88 99 AA BB CC DD"
+```
+
+实际测试时，可以在本地环境中覆盖为真实值，例如在 `local.ini` 的测试环境中配置 fallback 入口与证书指纹。
+
+已验证结果：
+
+- 主入口失败后，设备会继续请求 fallback HTTPS IP
+- fallback 返回 200 后，设备可以正常下载 `certs.ar`
+- 该行为已在真机上验证通过

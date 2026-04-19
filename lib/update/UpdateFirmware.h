@@ -6,6 +6,7 @@
 #include <CertStoreBearSSL.h>
 #include <LittleFS.h>
 #include "store.h"
+#include "fallbackNetwork.h"
 
 BearSSL::WiFiClientSecure updateFireWareClient;
 
@@ -78,26 +79,43 @@ void updateFireWare(const char *url = FIRMWARE_UPDATE_URL)
     updateFireWareClient.setInsecure();
   }
 
-  updateFireWareClient.setCertStore(&certStore);
+  NetworkEndpointCandidate candidates[3];
+  int candidateCount = buildEndpointCandidates(url, "/api/update/firmware", candidates, 3);
+  prioritizeLastGoodEndpoint(candidates, candidateCount);
+
   ESPhttpUpdate.onStart(onStartUpdateFireWare);
   ESPhttpUpdate.onProgress(onProgressUpdateFireWare);
   ESPhttpUpdate.onEnd(onEndUpdateFireWare);
-  t_httpUpdate_return ret = ESPhttpUpdate.update(updateFireWareClient, url);
-  updateFireWareClient.stop();
-  LittleFS.end();
 
-  switch (ret)
+  for (int candidateIndex = 0; candidateIndex < candidateCount; candidateIndex++)
   {
-  case HTTP_UPDATE_FAILED:
-    Serial.printf("UPDATE Firmware FAILD Error (%d): %s\n", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
-    break;
-  case HTTP_UPDATE_NO_UPDATES:
-    Serial.println("UPDATE Firmware NO_UPDATES");
-    break;
-  case HTTP_UPDATE_OK:
-    Serial.println("UPDATE Firmware SUCCESS");
-    break;
+    NetworkEndpointCandidate &candidate = candidates[candidateIndex];
+    BearSSL::WiFiClientSecure attemptClient;
+    configureSecureClientForCandidate(attemptClient, certStore, numCerts > 0, candidate);
+    t_httpUpdate_return ret = ESPhttpUpdate.update(attemptClient, candidate.url);
+    attemptClient.stop();
+
+    switch (ret)
+    {
+    case HTTP_UPDATE_FAILED:
+      Serial.printf("UPDATE Firmware FAILD for %s Error (%d): %s\n", candidate.id.c_str(), ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
+      break;
+    case HTTP_UPDATE_NO_UPDATES:
+      rememberSuccessfulEndpoint(candidate);
+      LittleFS.end();
+      Serial.println("UPDATE Firmware NO_UPDATES");
+      Serial.println("Update Firmware End");
+      return;
+    case HTTP_UPDATE_OK:
+      rememberSuccessfulEndpoint(candidate);
+      LittleFS.end();
+      Serial.println("UPDATE Firmware SUCCESS");
+      Serial.println("Update Firmware End");
+      return;
+    }
   }
+
+  LittleFS.end();
   Serial.println("Update Firmware End");
 }
 

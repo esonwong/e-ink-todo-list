@@ -7,11 +7,11 @@
 #include <LittleFS.h>
 #include "network.h"
 #include "store.h"
+#include "fallbackNetwork.h"
 
 void updateFile(String name, int checkInterval = 60 * 60 * 24)
 {
-
-  String url = String(FILE_UPDATE_URL) + "/" + name;
+  String fallbackPath = String("/api/update/") + name;
 
   int lastCheckTime = getPersistentValue(name + "_last_check_time", 0);
   int now = time(nullptr);
@@ -60,73 +60,100 @@ void updateFile(String name, int checkInterval = 60 * 60 * 24)
     client.setCertStore(&certStore);
   }
 
-  Serial.printf("GET %s\n", url.c_str());
-
-  HTTPClient https;
-  https.begin(client, url);
-#ifdef GIT_VERSION
-  https.addHeader("X-Device-Firmware-Version", GIT_VERSION);
-#endif
-  https.addHeader("If-None-Match", currentEtag);
+  NetworkEndpointCandidate candidates[3];
+  int candidateCount = buildEndpointCandidates(FILE_UPDATE_URL, fallbackPath, candidates, 3);
+  prioritizeLastGoodEndpoint(candidates, candidateCount);
 
   const char *headerKeys[] = {"etag"};
   int headerKeysSize = sizeof(headerKeys) / sizeof(char *);
-  https.collectHeaders(headerKeys, headerKeysSize);
 
-  int httpCode = https.GET();
-  size_t contentLength = https.getSize();
-
-  Serial.printf("HTTPS GET: %d\n", httpCode);
-  Serial.printf("Content-Length: %d\n", contentLength);
-
-  if (httpCode == HTTP_CODE_OK)
+  for (int candidateIndex = 0; candidateIndex < candidateCount; candidateIndex++)
   {
-    if (!LittleFS.begin())
+    NetworkEndpointCandidate &candidate = candidates[candidateIndex];
+    BearSSL::WiFiClientSecure attemptClient;
+    configureSecureClientForCandidate(attemptClient, certStore, numCerts > 0, candidate);
+
+    Serial.printf("GET %s\n", candidate.url.c_str());
+
+    HTTPClient https;
+    if (!https.begin(attemptClient, candidate.url))
     {
-      Serial.println("An Error has occurred while mounting LittleFS");
+      Serial.printf("HTTPS begin failed for %s\n", candidate.id.c_str());
+      https.end();
+      continue;
+    }
+#ifdef GIT_VERSION
+    https.addHeader("X-Device-Firmware-Version", GIT_VERSION);
+#endif
+    https.addHeader("If-None-Match", currentEtag);
+    https.collectHeaders(headerKeys, headerKeysSize);
+
+    int httpCode = https.GET();
+    size_t contentLength = https.getSize();
+
+    Serial.printf("HTTPS GET: %d\n", httpCode);
+    Serial.printf("Content-Length: %d\n", contentLength);
+
+    if (httpCode == HTTP_CODE_NOT_MODIFIED)
+    {
+      rememberSuccessfulEndpoint(candidate);
+      https.end();
+      LittleFS.end();
       return;
     }
-    File downloadedFile = LittleFS.open(name, "w+");
-    if (downloadedFile)
+
+    if (httpCode == HTTP_CODE_OK)
     {
-      WiFiClient *stream = https.getStreamPtr();
-      uint8_t buff[128];
-      size_t buffSize = sizeof(buff);
-      size_t readSize;
-      size_t readSizeTotal = 0;
-      int progress = 0;
-      Serial.printf("Download %s Progress: %d%%", name.c_str(), progress);
-      while (https.connected() && (readSize = stream->readBytes(buff, std::min(buffSize, (contentLength - readSizeTotal)))) > 0)
+      if (!LittleFS.begin())
       {
-        downloadedFile.write(buff, readSize);
-        readSizeTotal += readSize;
-        int newProgress = (readSizeTotal * 100) / contentLength;
-        if (newProgress != progress)
-        {
-          progress = newProgress;
-          Serial.print("\r");
-          Serial.print("                                          ");
-          Serial.printf("\rDownload %s Progress: %d%%", name.c_str(), progress);
-        }
+        Serial.println("An Error has occurred while mounting LittleFS");
+        https.end();
+        return;
       }
-      Serial.println();
-      downloadedFile.close();
-      LittleFS.end();
-      savePersistentValue(name + "_etag", https.header("etag"));
-      Serial.println(name + " Updated");
-    }
-    else
-    {
+      File downloadedFile = LittleFS.open(name, "w+");
+      if (downloadedFile)
+      {
+        WiFiClient *stream = https.getStreamPtr();
+        uint8_t buff[128];
+        size_t buffSize = sizeof(buff);
+        size_t readSize;
+        size_t readSizeTotal = 0;
+        int progress = 0;
+        Serial.printf("Download %s Progress: %d%%", name.c_str(), progress);
+        while (https.connected() && (readSize = stream->readBytes(buff, std::min(buffSize, (contentLength - readSizeTotal)))) > 0)
+        {
+          downloadedFile.write(buff, readSize);
+          readSizeTotal += readSize;
+          int newProgress = (readSizeTotal * 100) / contentLength;
+          if (newProgress != progress)
+          {
+            progress = newProgress;
+            Serial.print("\r");
+            Serial.print("                                          ");
+            Serial.printf("\rDownload %s Progress: %d%%", name.c_str(), progress);
+          }
+        }
+        Serial.println();
+        downloadedFile.close();
+        LittleFS.end();
+        savePersistentValue(name + "_etag", https.header("etag"));
+        rememberSuccessfulEndpoint(candidate);
+        Serial.println(name + " Updated");
+        https.end();
+        return;
+      }
+
       Serial.printf("Can not open file %s for writing\n", name.c_str());
       LittleFS.end();
+      https.end();
+      return;
     }
+
+    Serial.printf("HTTPS GET failed for %s, error: %s\n", candidate.id.c_str(), https.errorToString(httpCode).c_str());
+    https.end();
   }
-  else
-  {
-    Serial.printf("HTTPS GET failed, error: %s\n", https.errorToString(httpCode).c_str());
-    LittleFS.end();
-  }
-  https.end();
+
+  LittleFS.end();
 }
 
 void updateFiles()

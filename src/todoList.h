@@ -8,6 +8,7 @@
 #include <LittleFS.h>
 #include <ESP8266HTTPClient.h>
 #include <CertStoreBearSSL.h>
+#include "fallbackNetwork.h"
 
 int updating = false;
 String cachedFileName = "/todo.bitmap";
@@ -279,7 +280,6 @@ void downloadAndDrawTodo()
   Serial.print("Free memory: ");
   Serial.println(ESP.getFreeHeap());
 
-  const char *apiRoot = DEFAULT_API_URL;
   const char *apikey = apiKey.getValue();
 
   BearSSL::CertStore certStore;
@@ -306,26 +306,11 @@ void downloadAndDrawTodo()
   client.setTimeout(60000);
 
   String savedTodoLastModified = runningValue.todoLastModified;
-
   Serial.println("Last-Modified: " + savedTodoLastModified);
 
-  String url = String(apiRoot) + "?width=" + String(display.width) + "&height=" + String(display.height);
-
-  Serial.printf("GET %s\n", url.c_str());
-  Serial.printf("If-Modified-Since: %s\n", savedTodoLastModified.c_str());
-  Serial.printf("Authorization: Bearer %s\n", apikey);
-
-  HTTPClient https;
-  https.setTimeout(60000);
-  https.begin(client, url);
-  https.addHeader("If-Modified-Since", savedTodoLastModified);
-  https.addHeader("X-If-Modified-Since", savedTodoLastModified);
-  https.addHeader("Authorization", "Bearer " + String(apikey));
-  https.addHeader("X-Device-Id", DeviceID);
-  https.addHeader("X-Device-Colors", DEVICE_COLOR_SUPPORT);
-#ifdef GIT_VERSION
-  https.addHeader("X-Device-Firmware-Version", GIT_VERSION);
-#endif
+  NetworkEndpointCandidate candidates[3];
+  int candidateCount = buildEndpointCandidates(DEFAULT_API_URL, "/api/display/v3", candidates, 3);
+  prioritizeLastGoodEndpoint(candidates, candidateCount);
 
   const char *headerKeys[] = {
       "Content-Picture-Width",
@@ -338,196 +323,238 @@ void downloadAndDrawTodo()
       "X-Red-Buffer-Length",
       "X-Device-Config-Last-Modified"};
   int headerKeysSize = sizeof(headerKeys) / sizeof(char *);
-  https.collectHeaders(headerKeys, headerKeysSize);
 
-  int httpCode = https.GET();
-  int contentLength = https.getSize();
-
-  Serial.printf("HTTPS GET: %d\n", httpCode);
-  Serial.printf("Content-Length: %d\n", contentLength);
-
-  Serial.print("Free memory: ");
-  Serial.println(ESP.getFreeHeap());
-
-  if (httpCode == HTTP_CODE_NOT_MODIFIED)
+  for (int candidateIndex = 0; candidateIndex < candidateCount; candidateIndex++)
   {
-    Serial.println("Not Modified");
-    https.end();
-    LittleFS.end();
-    return;
-  }
+    NetworkEndpointCandidate &candidate = candidates[candidateIndex];
+    BearSSL::WiFiClientSecure attemptClient;
+    configureSecureClientForCandidate(attemptClient, certStore, numCerts > 0, candidate);
 
-  if (httpCode == 401)
-  {
-    Serial.printf("HTTPS GET failed, error: API Key authorization failed\n");
-    https.end();
-    LittleFS.end();
-    show401();
-    return;
-  }
+    String url = candidate.url + "?width=" + String(display.width) + "&height=" + String(display.height);
+    Serial.printf("GET %s\n", url.c_str());
+    Serial.printf("If-Modified-Since: %s\n", savedTodoLastModified.c_str());
+    Serial.printf("Authorization: Bearer %s\n", apikey);
 
-  if (httpCode == HTTP_CODE_NO_CONTENT)
-  {
-    Serial.println("No Content");
-    https.end();
-    LittleFS.end();
-    showNoContent();
-    return;
-  }
-
-  if (httpCode != HTTP_CODE_OK)
-  {
-    Serial.printf("HTTPS GET failed, error: %s\n", https.errorToString(httpCode).c_str());
-    https.end();
-    LittleFS.end();
-    return;
-  }
-
-  if (contentLength <= 0)
-  {
-    Serial.println("Content-Length not set");
-    https.end();
-    LittleFS.end();
-    return;
-  }
-
-  Serial.printf("headers count %d\n", https.headers());
-  for (int i = 0; i < https.headers(); i++)
-  {
-    String headerName = https.headerName(i);
-    String headerValue = https.header(i);
-    Serial.printf("header[%s]: %s\n", headerName.c_str(), headerValue.c_str());
-  }
-
-  WiFiClient *stream = https.getStreamPtr();
-
-  uint16_t w = https.header("Content-Picture-Width").toInt();
-  uint16_t h = https.header("Content-Picture-Height").toInt();
-  int bitmapLayers = https.header("X-Bitmap-Layers").toInt();
-  int blackBufferLength = https.header("X-Black-Buffer-Length").toInt();
-  int redBufferLength = https.header("X-Red-Buffer-Length").toInt();
-
-  // 优先读 Last-Modified，备用 X-Data-Modified
-  String lastModified = https.header("Last-Modified");
-  if (lastModified.length() == 0) lastModified = https.header("X-Data-Modified");
-  String apiVersion = https.header("API-Version");
-
-  Serial.printf("Last-Modified: %s\n", lastModified.c_str());
-  Serial.printf("API-Version: %s\n", apiVersion.c_str());
-  Serial.printf("Bitmap-Layers: %d\n", bitmapLayers);
-  Serial.printf("Black-Buffer-Length: %d\n", blackBufferLength);
-  Serial.printf("Red-Buffer-Length: %d\n", redBufferLength);
-
-  LittleFS.begin();
-
-  bool isBWR = (bitmapLayers == 2 && blackBufferLength > 0 && redBufferLength > 0);
-
-  if (isBWR)
-  {
-    // BWR 双图层模式：分别保存黑色和红色位图文件
-    File blackFile = LittleFS.open(cachedFileName, "w");
-    File redFile = LittleFS.open(cachedRedFileName, "w");
-
-    if (!blackFile || !redFile)
+    HTTPClient https;
+    https.setTimeout(60000);
+    if (!https.begin(attemptClient, url))
     {
-      Serial.println("Cannot open BWR bitmap files for writing");
-      if (blackFile)
-        blackFile.close();
-      if (redFile)
-        redFile.close();
+      Serial.printf("HTTPS begin failed for %s\n", candidate.id.c_str());
+      https.end();
+      continue;
+    }
+
+    https.addHeader("If-Modified-Since", savedTodoLastModified);
+    https.addHeader("X-If-Modified-Since", savedTodoLastModified);
+    https.addHeader("Authorization", "Bearer " + String(apikey));
+    https.addHeader("X-Device-Id", DeviceID);
+    https.addHeader("X-Device-Colors", DEVICE_COLOR_SUPPORT);
+#ifdef GIT_VERSION
+    https.addHeader("X-Device-Firmware-Version", GIT_VERSION);
+#endif
+    https.collectHeaders(headerKeys, headerKeysSize);
+
+    int httpCode = https.GET();
+    int contentLength = https.getSize();
+
+    Serial.printf("HTTPS GET: %d\n", httpCode);
+    Serial.printf("Content-Length: %d\n", contentLength);
+    Serial.print("Free memory: ");
+    Serial.println(ESP.getFreeHeap());
+
+    if (httpCode == HTTP_CODE_NOT_MODIFIED)
+    {
+      rememberSuccessfulEndpoint(candidate);
+      Serial.println("Not Modified");
       https.end();
       LittleFS.end();
       return;
     }
 
-    Serial.println("Start reading BWR response body");
-    uint8_t buff[128];
-    size_t buffSize = sizeof(buff);
-    size_t readSize;
-    size_t bytesWritten = 0;
-    size_t totalSize = blackBufferLength + redBufferLength;
-
-    Serial.printf("Download BWR Progress: 0%% , 0/%d bytes", totalSize);
-    while (https.connected() && bytesWritten < totalSize)
+    if (httpCode == 401)
     {
-      size_t remaining = totalSize - bytesWritten;
-      readSize = stream->readBytes(buff, std::min(buffSize, remaining));
-      if (readSize == 0)
-        break;
+      rememberSuccessfulEndpoint(candidate);
+      Serial.printf("HTTPS GET failed, error: API Key authorization failed\n");
+      https.end();
+      LittleFS.end();
+      show401();
+      return;
+    }
 
-      if (bytesWritten < (size_t)blackBufferLength)
+    if (httpCode == HTTP_CODE_NO_CONTENT)
+    {
+      rememberSuccessfulEndpoint(candidate);
+      Serial.println("No Content");
+      https.end();
+      LittleFS.end();
+      showNoContent();
+      return;
+    }
+
+    if (httpCode != HTTP_CODE_OK)
+    {
+      Serial.printf("HTTPS GET failed for %s, error: %s\n", candidate.id.c_str(), https.errorToString(httpCode).c_str());
+      https.end();
+      if (isReachableHttpCode(httpCode))
       {
-        // 当前还在黑色图层数据范围内
-        size_t blackRemaining = blackBufferLength - bytesWritten;
-        size_t toBlack = std::min(readSize, blackRemaining);
-        blackFile.write(buff, toBlack);
+        rememberSuccessfulEndpoint(candidate);
+        LittleFS.end();
+        return;
+      }
+      continue;
+    }
 
-        // 如果本次读取跨越了黑色和红色的边界
-        if (readSize > toBlack)
+    if (contentLength <= 0)
+    {
+      Serial.println("Content-Length not set");
+      https.end();
+      continue;
+    }
+
+    Serial.printf("headers count %d\n", https.headers());
+    for (int i = 0; i < https.headers(); i++)
+    {
+      String headerName = https.headerName(i);
+      String headerValue = https.header(i);
+      Serial.printf("header[%s]: %s\n", headerName.c_str(), headerValue.c_str());
+    }
+
+    WiFiClient *stream = https.getStreamPtr();
+
+    uint16_t w = https.header("Content-Picture-Width").toInt();
+    uint16_t h = https.header("Content-Picture-Height").toInt();
+    int bitmapLayers = https.header("X-Bitmap-Layers").toInt();
+    int blackBufferLength = https.header("X-Black-Buffer-Length").toInt();
+    int redBufferLength = https.header("X-Red-Buffer-Length").toInt();
+
+    String lastModified = https.header("Last-Modified");
+    if (lastModified.length() == 0)
+    {
+      lastModified = https.header("X-Data-Modified");
+    }
+    String apiVersion = https.header("API-Version");
+
+    Serial.printf("Last-Modified: %s\n", lastModified.c_str());
+    Serial.printf("API-Version: %s\n", apiVersion.c_str());
+    Serial.printf("Bitmap-Layers: %d\n", bitmapLayers);
+    Serial.printf("Black-Buffer-Length: %d\n", blackBufferLength);
+    Serial.printf("Red-Buffer-Length: %d\n", redBufferLength);
+
+    LittleFS.begin();
+
+    bool isBWR = (bitmapLayers == 2 && blackBufferLength > 0 && redBufferLength > 0);
+
+    if (isBWR)
+    {
+      File blackFile = LittleFS.open(cachedFileName, "w");
+      File redFile = LittleFS.open(cachedRedFileName, "w");
+
+      if (!blackFile || !redFile)
+      {
+        Serial.println("Cannot open BWR bitmap files for writing");
+        if (blackFile)
         {
-          redFile.write(buff + toBlack, readSize - toBlack);
+          blackFile.close();
         }
+        if (redFile)
+        {
+          redFile.close();
+        }
+        https.end();
+        LittleFS.end();
+        return;
       }
-      else
+
+      Serial.println("Start reading BWR response body");
+      uint8_t buff[128];
+      size_t buffSize = sizeof(buff);
+      size_t readSize;
+      size_t bytesWritten = 0;
+      size_t totalSize = blackBufferLength + redBufferLength;
+
+      Serial.printf("Download BWR Progress: 0%% , 0/%d bytes", totalSize);
+      while (https.connected() && bytesWritten < totalSize)
       {
-        // 已经全部是红色图层数据
-        redFile.write(buff, readSize);
+        size_t remaining = totalSize - bytesWritten;
+        readSize = stream->readBytes(buff, std::min(buffSize, remaining));
+        if (readSize == 0)
+        {
+          break;
+        }
+
+        if (bytesWritten < (size_t)blackBufferLength)
+        {
+          size_t blackRemaining = blackBufferLength - bytesWritten;
+          size_t toBlack = std::min(readSize, blackRemaining);
+          blackFile.write(buff, toBlack);
+
+          if (readSize > toBlack)
+          {
+            redFile.write(buff + toBlack, readSize - toBlack);
+          }
+        }
+        else
+        {
+          redFile.write(buff, readSize);
+        }
+
+        bytesWritten += readSize;
+        Serial.print("\r");
+        Serial.print("                                                                     ");
+        Serial.printf("\rDownload BWR Progress: %d%% , %d/%d bytes", (bytesWritten * 100) / totalSize, bytesWritten, totalSize);
+      }
+      Serial.println();
+
+      blackFile.close();
+      redFile.close();
+    }
+    else
+    {
+      File file = LittleFS.open(cachedFileName, "w");
+      if (!file)
+      {
+        Serial.printf("Can not open file %s for writing\n", cachedFileName.c_str());
+        https.end();
+        LittleFS.end();
+        return;
       }
 
-      bytesWritten += readSize;
-      Serial.print("\r");
-      Serial.print("                                                                     ");
-      Serial.printf("\rDownload BWR Progress: %d%% , %d/%d bytes", (bytesWritten * 100) / totalSize, bytesWritten, totalSize);
-    }
-    Serial.println();
-
-    blackFile.close();
-    redFile.close();
-  }
-  else
-  {
-    // BW 单图层模式：保存单个位图文件（兼容 v2 行为）
-    File file = LittleFS.open(cachedFileName, "w");
-    if (!file)
-    {
-      Serial.printf("Can not open file %s for writing\n", cachedFileName.c_str());
-      https.end();
-      LittleFS.end();
-      return;
+      Serial.println("Start reading response body");
+      uint8_t buff[128];
+      size_t buffSize = sizeof(buff);
+      size_t readSize;
+      size_t readSizeTotal = 0;
+      Serial.printf("Download %s Progress: 0%% , 0/%d bytes", cachedFileName.c_str(), contentLength);
+      while (https.connected() && (readSize = stream->readBytes(buff, std::min(buffSize, (contentLength - readSizeTotal)))) > 0)
+      {
+        file.write(buff, readSize);
+        readSizeTotal += readSize;
+        Serial.print("\r");
+        Serial.print("                                                                     ");
+        Serial.printf("\rDownload %s Progress: %d%% , %d/%d bytes", cachedFileName.c_str(), (readSizeTotal * 100) / contentLength, readSizeTotal, contentLength);
+      }
+      Serial.println();
+      file.close();
     }
 
-    Serial.println("Start reading response body");
-    uint8_t buff[128];
-    size_t buffSize = sizeof(buff);
-    size_t readSize;
-    size_t readSizeTotal = 0;
-    Serial.printf("Download %s Progress: 0%% , 0/%d bytes", cachedFileName.c_str(), contentLength);
-    while (https.connected() && (readSize = stream->readBytes(buff, std::min(buffSize, (contentLength - readSizeTotal)))) > 0)
+    LittleFS.end();
+    Serial.println("Read all response body");
+    https.end();
+    rememberSuccessfulEndpoint(candidate);
+
+    strcpy(runningValue.todoLastModified, lastModified.c_str());
+    delay(50);
+
+    if (isBWR)
     {
-      file.write(buff, readSize);
-      readSizeTotal += readSize;
-      Serial.print("\r");
-      Serial.print("                                                                     ");
-      Serial.printf("\rDownload %s Progress: %d%% , %d/%d bytes", cachedFileName.c_str(), (readSizeTotal * 100) / contentLength, readSizeTotal, contentLength);
+      displayBWRToScreen(cachedFileName, cachedRedFileName, w, h);
     }
-    Serial.println();
-    file.close();
+    else
+    {
+      displayToScreen(cachedFileName, w, h, DISPLAY_COLOR_BLACK);
+    }
+    return;
   }
 
   LittleFS.end();
-
-  Serial.println("Read all response body");
-  https.end();
-
-  strcpy(runningValue.todoLastModified, lastModified.c_str());
-  delay(50);
-
-  if (isBWR)
-  {
-    displayBWRToScreen(cachedFileName, cachedRedFileName, w, h);
-  }
-  else
-  {
-    displayToScreen(cachedFileName, w, h, DISPLAY_COLOR_BLACK);
-  }
 }
