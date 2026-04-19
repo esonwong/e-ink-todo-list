@@ -14,6 +14,11 @@ int updating = false;
 String cachedFileName = "/todo.bitmap";
 String cachedRedFileName = "/todo_red.bitmap";
 
+// Raw button event to forward to the server on the next fetch (e.g.
+// "double-click").  Server-side dispatcher decides what action it triggers,
+// so behavior can change without an OTA.  Cleared after the request goes out.
+String pendingDeviceEvent = "";
+
 // 设备颜色能力，根据编译时的屏幕类型决定
 #if defined(E_INK_750)
 #define DEVICE_COLOR_SUPPORT "bwr"
@@ -352,6 +357,12 @@ void downloadAndDrawTodo()
 #ifdef GIT_VERSION
     https.addHeader("X-Device-Firmware-Version", GIT_VERSION);
 #endif
+    if (pendingDeviceEvent.length() > 0)
+    {
+      Serial.printf("X-Device-Event: %s\n", pendingDeviceEvent.c_str());
+      https.addHeader("X-Device-Event", pendingDeviceEvent);
+      pendingDeviceEvent = "";
+    }
     https.collectHeaders(headerKeys, headerKeysSize);
 
     int httpCode = https.GET();

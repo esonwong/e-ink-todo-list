@@ -6,4 +6,5 @@
 logs/
 local.ini
 src/local/
+.local/
 .DS_Store

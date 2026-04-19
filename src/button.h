@@ -54,7 +54,17 @@ void buttonClick()
 void buttonDoubleClick()
 {
   Serial.println("Button double clicked");
-  // TODO: Switch to the next mode
+  // Forward the raw event to the server; what double-click *does* (cycle
+  // display mode, refresh, etc.) is decided server-side by
+  // lib/device-events.ts so we can change behavior without an OTA.
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    pendingDeviceEvent = "double-click";
+    cleanRunningValue();
+    updating = true;
+    downloadAndDrawTodo();
+    updating = false;
+  }
 }
 
 void buttonLongPressStart()

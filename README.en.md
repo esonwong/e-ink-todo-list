@@ -10,6 +10,12 @@ Use the API provided by [einktodo.com](https://einktodo.com) to display todo ite
 
 <https://blog.esonwong.com/e-ink-screen-todo-list-creation-turial>
 
+## Button gestures
+
+- Single click: closes the config portal if open; otherwise forces an immediate refresh on a connected device.
+- Double click: notifies the server with `X-Device-Event: double-click`. The actual action (defaults to cycling display mode: todo / agent / image) is decided server-side and can be changed without reflashing.
+- Long press for ~6 seconds: clears configuration + restarts into config mode.
+
 ## TODO
 
 - [ ] Support ESP8266 battery voltage detection

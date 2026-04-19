@@ -11,6 +11,12 @@
 <https://blog.esonwong.com/e-ink-screen-todo-list-creation-turial>
 
 
+## 按键说明
+
+- 单击：如果当前处于配网模式则关闭配网；已连接 Wi-Fi 时立即刷新一次。
+- 双击：通知服务器一次按键事件（`X-Device-Event: double-click`）。具体行为（默认是切换显示模式：todo / agent / image）由服务端配置，无需重刷固件。
+- 长按 6 秒以上：清空配置 + 重启进入配网模式。
+
 ## TODO
 
 - [ ] 支持 ESP8266 电池电压检测
