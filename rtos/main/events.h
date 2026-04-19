@@ -22,6 +22,7 @@ extern "C" {
 #define BIT_TIME_SYNCED    (1 << 2)
 #define BIT_DISP_DONE      (1 << 3)
 #define BIT_DISP_ABORTED   (1 << 4)
+#define BIT_DISP_STARTED   (1 << 5)  /* display_task dequeued a DISP_RENDER_BITMAP */
 
 /* VALUE-COPIED: no pointers into task-local buffers */
 typedef struct {                 /* cmd_queue, depth 4, button/wifi/httpd → cycle_task */

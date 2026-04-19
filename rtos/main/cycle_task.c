@@ -67,7 +67,10 @@ static bool post_render_and_wait(const display_req_t *req)
 {
     /* display_task runs at a lower priority, so clear before posting — a bit
      * left over from an earlier render must not satisfy this wait. */
-    xEventGroupClearBits(sys_events, BIT_DISP_DONE | BIT_DISP_ABORTED);
+    xEventGroupClearBits(sys_events, BIT_DISP_STARTED | BIT_DISP_DONE | BIT_DISP_ABORTED);
+    /* Screens already queued ahead of us (boot launch / WiFi status) each
+     * take a full panel refresh; budget them separately from the render. */
+    UBaseType_t queued = uxQueueMessagesWaiting(disp_queue);
     if (display_request(req, pdMS_TO_TICKS(1000)) != pdTRUE) {
         ESP_LOGW(TAG, "disp_queue full, dropping render request");
         return false;
@@ -79,7 +82,20 @@ static bool post_render_and_wait(const display_req_t *req)
         return false;
     }
 
+    /* Phase 1: wait for display_task to pick the bitmap up. One timeout per
+     * queued screen plus one for a screen it may be drawing right now. */
     EventBits_t bits = xEventGroupWaitBits(
+        sys_events, BIT_DISP_STARTED,
+        pdTRUE /* clear on exit */, pdFALSE,
+        pdMS_TO_TICKS(CONFIG_EINKTODO_RENDER_TIMEOUT_MS) * (queued + 1));
+    if ((bits & BIT_DISP_STARTED) == 0) {
+        ESP_LOGE(TAG, "display_task never started the render (%u screens queued) — restarting",
+                 (unsigned)queued);
+        esp_restart();
+    }
+
+    /* Phase 2: the panel-derived window for the render itself. */
+    bits = xEventGroupWaitBits(
         sys_events, BIT_DISP_DONE | BIT_DISP_ABORTED,
         pdTRUE /* clear on exit */, pdFALSE /* any */,
         pdMS_TO_TICKS(CONFIG_EINKTODO_RENDER_TIMEOUT_MS));

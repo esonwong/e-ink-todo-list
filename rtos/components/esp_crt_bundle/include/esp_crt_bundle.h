@@ -9,9 +9,12 @@
  * reuses the identical signature for leaf-fingerprint pinning.
  *
  * This is the tier-1 TLS trust path: the curated roots in certs/ca_roots.pem are
- * embedded into the firmware image and parsed once into an mbedtls cert chain
- * that is bound to the handshake config. Tier-2 (esp_tls global CA store) stays
- * Kconfig-selectable; see esp_crt_bundle.c.
+ * embedded into the firmware image. They are NOT pre-parsed into the CA chain
+ * (nine parsed roots cost ~17 KB of heap for the whole certificate step and
+ * starved the P-384 chain math); the handshake runs with an empty CA chain and
+ * a verify callback that anchors the top of the peer chain on one embedded
+ * root at a time. Tier-2 (esp_tls global CA store) stays Kconfig-selectable;
+ * see esp_crt_bundle.c.
  */
 #pragma once
 
@@ -27,9 +30,9 @@ extern "C" {
  * @brief Attach the curated CA bundle to an mbedtls_ssl_config.
  *
  * Signature is the contract for esp_tls_cfg_t.crt_bundle_attach /
- * esp_http_client_config_t.crt_bundle_attach. Parses the embedded
- * certs/ca_roots.pem (lazily, once) and binds it as the CA chain with
- * MBEDTLS_SSL_VERIFY_REQUIRED.
+ * esp_http_client_config_t.crt_bundle_attach. Sets
+ * MBEDTLS_SSL_VERIFY_REQUIRED, an empty CA chain and the verify callback that
+ * anchors the peer chain on the embedded certs/ca_roots.pem.
  *
  * @param  conf  pointer to mbedtls_ssl_config (void* to match the hook type)
  * @return ESP_OK on success, error otherwise.
@@ -37,8 +40,7 @@ extern "C" {
 esp_err_t esp_crt_bundle_attach(void *conf);
 
 /**
- * @brief Free the parsed CA bundle (optional; the chain is small and normally
- *        kept for the firmware lifetime).
+ * @brief Kept for API symmetry; nothing stays resident between handshakes.
  */
 void esp_crt_bundle_detach(void *conf);
 

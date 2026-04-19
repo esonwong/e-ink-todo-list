@@ -82,7 +82,8 @@ is the template. Never put a real key in a committed prod default.
 
 One event group `sys_events`, bits: `BIT_WIFI_CONNECTED (1<<0)`,
 `BIT_PORTAL_ACTIVE (1<<1)`, `BIT_TIME_SYNCED (1<<2)`, `BIT_DISP_DONE (1<<3)`,
-`BIT_DISP_ABORTED (1<<4)`.
+`BIT_DISP_ABORTED (1<<4)`, `BIT_DISP_STARTED (1<<5)` (display_task dequeued the
+bitmap request — separates queue-drain time from the panel-derived render timeout).
 
 Queues (all payloads fixed-size structs copied by value per G7 — **no pointers into
 task-local buffers, ever**):
@@ -126,7 +127,7 @@ diffed against the legacy module to confirm no behavior was silently dropped.
 | HTTP 401 | `DISP_AUTH_401` screen | `todo_fetch.c` → `display_task.cpp` |
 | HTTP 204 | `DISP_NO_CONTENT` screen | `todo_fetch.c` → `display_task.cpp` |
 | HTTP 200 | Erase `ceil(len/4096)` sectors after headers (G5) → stream body to `bitmap` partition in 4 KB chunks → **length-verify** vs `Content-Length` + `X-Black/Red-Buffer-Length` (G4); on mismatch skip render, keep image, no `todoLastModified` update (D5) | `todo_fetch.c` |
-| Render needed (200, verified) | Post `DISP_RENDER_BITMAP`; wait `BIT_DISP_DONE`/`BIT_DISP_ABORTED` (timeout `CONFIG_EINKTODO_RENDER_TIMEOUT_MS`) | `cycle_task.c` |
+| Render needed (200, verified) | Post `DISP_RENDER_BITMAP`; wait `BIT_DISP_STARTED` (budget `RENDER_TIMEOUT_MS` × (queued screens + 1) — boot/WiFi status screens ahead of us each take a full refresh), then `BIT_DISP_DONE`/`BIT_DISP_ABORTED` (timeout `CONFIG_EINKTODO_RENDER_TIMEOUT_MS`) | `cycle_task.c` |
 | `BIT_DISP_DONE` | Persist `todoLastModified` + `rememberSuccessfulEndpoint` (G2) | `cycle_task.c`, `endpoint_fallback.c` |
 | `BIT_DISP_ABORTED` | Do NOT persist `todoLastModified` — server retries next poll (G2/D10) | `cycle_task.c` |
 | Render wait timeout | Log + `esp_restart()` — fatal (G3) | `cycle_task.c` |
@@ -270,7 +271,7 @@ action is flagged where relevant.
 | ID4 | Portal `/restart` menu action posts `WIFI_CMD_RESET_AND_PORTAL` (close+reopen portal) instead of `ESP.restart()` (full reboot). | A portal httpd handler must not own a device reboot; the device-level reboot gesture is the 4-click button path. Not in §6. **Integrator: if exact parity is wanted, add an internal WIFI_CMD that calls `esp_restart()` in task context, or treat `/restart` as cosmetic.** |
 | ID5 | A new project component `components/esp_crt_bundle/` was created (not in the §2 file plan, which named only `esp_http_client`/`tcp_transport`/`pinned_tls`/`certs`). | Stock v3.4 declares `esp_tls_cfg_t.crt_bundle_attach` and the guarded call in `esp_tls_mbedtls.c` but **never shipped** the `esp_crt_bundle` component, header, `gen_crt_bundle.py`, or the `CONFIG_MBEDTLS_CERTIFICATE_BUNDLE` / `CONFIG_MBEDTLS_V3` symbols (the arch doc assumed step 8 introduces them). The new component supplies `esp_crt_bundle.h` + `esp_crt_bundle_attach()` and declares the two Kconfig symbols — minimal way to honor the one attach hook. Shadows nothing; no agent owns it. |
 | ID6 | `CONFIG_MBEDTLS_V3` is **informational only**; crypto runs on the in-tree **mbedTLS v2**. | v3.4 ships mbedTLS v2 sources exclusively (no `mbedtls_v3` tree); the doc's "tier-1 = mbedTLS v3" is not literally achievable. The full TLS feature set (crt_bundle attach, `mbedtls_ssl_conf_verify` leaf pinning, `mbedtls_x509_crt` CA chain, SHA1/SHA256) all use v2 APIs and compile+link. `MBEDTLS_V3=y` is kept so the committed `sdkconfig.defaults` baseline configures without an "unknown symbol" warning. |
-| ID7 | `esp_crt_bundle_attach` parses `certs/ca_roots.pem` directly with `mbedtls_x509_crt_parse` (PEM) and binds via `mbedtls_ssl_conf_ca_chain`, rather than the IDF indexed-DER bundle from `gen_crt_bundle.py` (absent in v3.4). | Functionally identical trust decision; ~14.6 KB PEM in flash (vs the doc's ~15 KB DER estimate) — within budget. `gen_crt_bundle.py` wiring can be added later without changing the attach signature. |
+| ID7 | `esp_crt_bundle_attach` does **not** pre-parse `certs/ca_roots.pem` into `conf->ca_chain`. It binds an empty chain plus a `mbedtls_ssl_conf_verify` callback that, for the topmost peer cert (flagged `NOT_TRUSTED` by mbedtls after it has linked the rest of the chain itself), walks the PEM one root at a time with `mbedtls_pem_read_buffer` + `mbedtls_x509_crt_verify`. | Bench 2026-10-27: nine pre-parsed roots cost ~17 KB of heap for the whole SERVER_CERTIFICATE step and pushed min-free-heap to ~3.7 KB, where the P-384 chain verify failed intermittently (`-0x2700 NOT_TRUSTED` on later polls). Lazy anchoring raised min-free-heap to ~17.8 KB over 5 consecutive full handshakes. Same trust decision; the root is resident only during its own check. |
 | ID8 | `esp_crt_bundle/CMakeLists.txt` injects its include dir onto the `esp-tls` component library target (`target_include_directories` on `idf_component_get_property(esp-tls COMPONENT_LIB)`, gated by `CONFIG_MBEDTLS_CERTIFICATE_BUNDLE`) so `esp_tls_mbedtls.c`'s guarded `#include` resolves. | Touches only the new component's own `CMakeLists`; the SDK `esp-tls`/`mbedtls` trees are NOT edited. Assumes `esp-tls`'s component lib target is registered before project components are processed (true in v3.4); harmless no-op if the property is empty. |
 | ID9 | SDK `test/` subdirs dropped from both shadow copies (`esp_http_client/test`, `tcp_transport/test`). | Keeps the components lean and avoids pulling unity/host-test deps into the firmware build. Noted in each `upstream.diff` header. |
 

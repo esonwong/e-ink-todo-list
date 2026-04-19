@@ -132,8 +132,9 @@ esp_err_t display_render_bands(const band_source_t *src, uint16_t w, uint16_t h,
         }
     });
 
-    ESP_LOGI(TAG, "Render bands done in %lld ms (err=%d)",
-             (long long)(esp_timer_get_time() / 1000 - start), (int)scan_err);
+    /* nano printf: no %lld, so narrow the elapsed ms. */
+    ESP_LOGI(TAG, "Render bands done in %ld ms (err=%d)",
+             (long)(esp_timer_get_time() / 1000 - start), (int)scan_err);
     return scan_err;
 }
 
@@ -253,6 +254,12 @@ static void display_task(void *arg)
         }
 
         esp_err_t err = ESP_OK;
+        /* Tell cycle_task the bitmap is now on the panel (not merely queued
+         * behind boot/status screens), so its panel-derived timeout starts
+         * counting from here. */
+        if (req.kind == display_req_t::DISP_RENDER_BITMAP) {
+            xEventGroupSetBits(sys_events, BIT_DISP_STARTED);
+        }
         /* The display_req_t `kind` enum is unnamed and nested in the struct, so
          * in C++ its enumerators are members of display_req_t (events.h is
          * shared C/C++ and owned elsewhere — qualify rather than edit it). */
