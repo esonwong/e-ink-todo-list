@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>E-ink Todo List</title>
+<style>
+  body { font-family: -apple-system, system-ui, sans-serif; margin: 0; padding: 1em;
+         background: #f4f4f4; color: #222; }
+  h1 { font-size: 1.3em; }
+  .card { background: #fff; border-radius: 8px; padding: 1em; margin: 0.6em 0;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  label { display: block; margin: 0.6em 0 0.2em; font-size: 0.9em; }
+  input { width: 100%; box-sizing: border-box; padding: 0.5em; font-size: 1em;
+          border: 1px solid #ccc; border-radius: 4px; }
+  button, .btn { display: inline-block; margin-top: 0.8em; padding: 0.6em 1em;
+          font-size: 1em; border: none; border-radius: 4px; background: #0a7;
+          color: #fff; text-decoration: none; cursor: pointer; }
+  .menu a { margin-right: 0.6em; }
+  ul { list-style: none; padding: 0; }
+  li a { display: block; padding: 0.4em 0; text-decoration: none; color: #06c; }
+</style>
+</head>
+<body>
+<h1>E-ink Todo List</h1>
+<div class="menu card">
+  <a href="/">wifi</a>
+  <a href="/info">info</a>
+  <a href="/restart">restart</a>
+  <a href="/exit">exit</a>
+</div>
+<div class="card">
+  <strong>Networks</strong>
+  <ul id="nets"><li>Scanning&hellip;</li></ul>
+</div>
+<div class="card">
+  <form method="POST" action="/save">
+    <label for="s">SSID</label>
+    <input id="s" name="s" maxlength="32" autocomplete="off">
+    <label for="p">Password</label>
+    <input id="p" name="p" type="password" maxlength="64" autocomplete="off">
+    <label for="k">API Key</label>
+    <input id="k" name="k" maxlength="41" autocomplete="off">
+    <button type="submit">Save</button>
+  </form>
+</div>
+<script>
+fetch('/scan').then(function(r){return r.json();}).then(function(d){
+  var ul = document.getElementById('nets');
+  ul.innerHTML = '';
+  if (!d.length) { ul.innerHTML = '<li>No networks found</li>'; return; }
+  d.forEach(function(n){
+    var li = document.createElement('li');
+    var a = document.createElement('a');
+    a.href = '#';
+    a.textContent = n.ssid + ' (' + n.rssi + ' dBm)';
+    a.onclick = function(){ document.getElementById('s').value = n.ssid;
+                            document.getElementById('p').focus(); return false; };
+    li.appendChild(a);
+    ul.appendChild(li);
+  });
+}).catch(function(){ document.getElementById('nets').innerHTML = '<li>Scan failed</li>'; });
+</script>
+</body>
+</html>

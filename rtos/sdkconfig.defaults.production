@@ -1,0 +1,9 @@
+# Production overlay — www.einktodo.com, OTA on, log level WARN.
+CONFIG_EINKTODO_API_URL="https://www.einktodo.com"
+CONFIG_EINKTODO_OTA_URL="https://www.einktodo.com/api/update/rtos/firmware"
+CONFIG_EINKTODO_ENABLE_OTA=y
+CONFIG_LOG_DEFAULT_LEVEL_WARN=y
+# HTTPS IP fallback (parity with platformio.ini common.fallback_build_flags;
+# pin is colon-less hex — 40 chars = SHA-1, 64 chars = SHA-256)
+CONFIG_EINKTODO_FALLBACK_URL_1="https://107.173.82.8:16845"
+CONFIG_EINKTODO_FALLBACK_PIN_1="3EEC9E513B05EA76044F2CCA76C227CD62C2F55B"

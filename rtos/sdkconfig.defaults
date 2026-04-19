@@ -1,0 +1,45 @@
+# E-ink Todo RTOS — shared baseline (architecture doc section 3.2).
+# Build per environment:
+#   idf.py -DSDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.defaults.<env>" build
+
+# v3.4 console default is 74880 — must override (parity item 1)
+CONFIG_ESP_CONSOLE_UART_BAUDRATE=115200
+
+# 160 MHz halves the ~2-4 s software-P256 TLS handshake (R14)
+CONFIG_ESP8266_DEFAULT_CPU_FREQ_160=y
+
+# esp12e module: 4 MB flash (required for the 0x200000 bitmap partition)
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
+
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+
+# Tier-1 TLS. NOTE: CONFIG_MBEDTLS_V3 and CONFIG_MBEDTLS_CERTIFICATE_BUNDLE do
+# not exist in the stock v3.4 SDK tree — these two lines are inert until the
+# step-8 shadow mbedtls/esp_http_client/tcp_transport components introduce
+# them. Kept here so the baseline matches the architecture doc and activates
+# automatically once those components land.
+CONFIG_MBEDTLS_V3=y
+CONFIG_MBEDTLS_CERTIFICATE_BUNDLE=y
+
+# All three mandatory: static 16+16 KB SSL buffers OOM on this chip (R14)
+CONFIG_MBEDTLS_DYNAMIC_BUFFER=y
+CONFIG_MBEDTLS_DYNAMIC_FREE_PEER_CERT=y
+CONFIG_MBEDTLS_DYNAMIC_FREE_CONFIG_DATA=y
+
+# Task watchdog ("CONFIG_TASK_WDT" in the architecture doc; the actual v3.4
+# symbol is ESP_TASK_WDT)
+CONFIG_ESP_TASK_WDT=y
+
+# Three SNTP servers are binding (sntp_clock, item 26): time.asia.apple.com /
+# cn.pool.ntp.org / pool.ntp.org. v3.4 default is 1; the doc's
+# "CONFIG_LWIP_SNTP_MAX_SERVERS >= 3" maps to this v3.4 symbol.
+CONFIG_LWIP_DHCP_MAX_NTP_SERVERS=3
+
+# Bit-bang the EPD SPI (all overlays). Bench-verified 2026-06-12: the v3.4 HSPI
+# spi_trans 32-bit word packing does NOT clock the panel data byte-exact, so the
+# e-ink never updated. Bit-bang is byte-for-byte identical to the legacy Arduino
+# SPI.transfer() stream and drives the panel correctly. Refresh time is dominated
+# by the panel's multi-second cycle, so the slower clock-out is negligible.
+# HSPI remains a future optimization behind this knob (§8 gate 5 / Residual #3).
+CONFIG_EINKTODO_EPD_BITBANG=y

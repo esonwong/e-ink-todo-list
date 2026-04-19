@@ -1,0 +1,14 @@
+# E-ink Todo RTOS — 4 MB dual-OTA layout (architecture doc section 3.1).
+# Each app slot sits at the same offset inside its own 1 MB block and never
+# crosses a 1 MB boundary (ESP8266 1 MB cache-window constraint; mirrors the
+# stock partitions_two_ota.csv). Never rely on CONFIG_ESP8266_BOOT_COPY_APP
+# ("not released" in v3.4). `bitmap` (128 KB raw) replaces the LittleFS
+# /todo.bitmap + /todo_red.bitmap files.
+# Name,     Type, SubType,  Offset,   Size
+nvs,        data, nvs,      0x9000,   0x4000
+otadata,    data, ota,      0xd000,   0x2000
+phy_init,   data, phy,      0xf000,   0x1000
+ota_0,      app,  ota_0,    0x10000,  0xF0000
+ota_1,      app,  ota_1,    0x110000, 0xF0000
+bitmap,     data, 0x40,     0x200000, 0x20000
+# ~1.8 MB spare above 0x220000

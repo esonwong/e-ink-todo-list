@@ -1,0 +1,34 @@
+# upstream.diff — project-local patch vs ESP8266_RTOS_SDK release/v3.4
+# Component: esp_http_client
+# Purpose: add crt_bundle_attach field to esp_http_client_config_t and wire it
+#          to esp_transport_ssl_crt_bundle_attach (takes priority over
+#          use_global_ca_store / cert_pem). One hook for CA bundle + pinning
+#          (R4/R5). SDK 'test/' dir dropped (not built).
+# Reapply: copy the SDK component, then 'patch -p1 < upstream.diff'.
+#
+--- a/include/esp_http_client.h
++++ b/include/esp_http_client.h
+@@ -122,6 +122,7 @@
+     bool                        is_async;                 /*!< Set asynchronous mode, only supported with HTTPS for now */
+     bool                        use_global_ca_store;      /*!< Use a global ca_store for all the connections in which this bool is set. */
+     bool                        skip_cert_common_name_check;    /*!< Skip any validation of server certificate CN field */
++    esp_err_t                   (*crt_bundle_attach)(void *conf); /*!< EINKTODO PATCH (R4/R5): function pointer to esp_crt_bundle_attach / pinned_tls_attach. Enables a certificate bundle or leaf-fingerprint pinning for server verification; honored only when CONFIG_MBEDTLS_CERTIFICATE_BUNDLE is enabled. */
+ } esp_http_client_config_t;
+ 
+ /**
+--- a/esp_http_client.c
++++ b/esp_http_client.c
+@@ -536,7 +536,12 @@
+         goto error;
+     }
+ 
+-    if (config->use_global_ca_store == true) {
++    /* EINKTODO PATCH (R4/R5): crt_bundle_attach takes priority over the global
++     * CA store and a single cert_pem. It carries either the curated CA bundle
++     * or the pinned_tls leaf-fingerprint verifier through one hook. */
++    if (config->crt_bundle_attach != NULL) {
++        esp_transport_ssl_crt_bundle_attach(ssl, config->crt_bundle_attach);
++    } else if (config->use_global_ca_store == true) {
+         esp_transport_ssl_enable_global_ca_store(ssl);
+     } else if (config->cert_pem) {
+         esp_transport_ssl_set_cert_data(ssl, config->cert_pem, strlen(config->cert_pem));

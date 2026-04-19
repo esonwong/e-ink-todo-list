@@ -1,0 +1,129 @@
+name: RTOS CI
+
+# Release pipeline for the ESP8266_RTOS_SDK v3.4 rewrite (rtos/ tree).
+# Triggered ONLY by rtos-v* tags so it can never collide with the legacy
+# Arduino/PlatformIO tag.yml (which fires on v* and ships firmware.bin/md5sum).
+# This line ships firmware-rtos.bin + firmware-rtos.sha256 — distinct asset
+# names, distinct tag prefix: the triple guard against cross-flashing a brick
+# (see .migration/04-rtos-architecture.md §3.4 fleet coexistence).
+
+on:
+  push:
+    # Push events to matching rtos-v*, i.e. rtos-v1.0, rtos-v20.15.10
+    tags:
+      - 'rtos-v*'
+
+permissions:
+  contents: write
+
+env:
+  # Mirrors the local ~/esp/rtos-env.sh: Homebrew/Ubuntu cmake is 4.x and
+  # removed compat with cmake_minimum_required(<3.5) (the SDK's mbedtls
+  # submodule). This restores it.
+  CMAKE_POLICY_VERSION_MINIMUM: '3.5'
+  # ESP8266 RTOS app .bin must never exceed the 0xF0000 OTA slot; gate well
+  # under it at 0xE0000 (917504 bytes) — see architecture §3.5 / G9.
+  EINKTODO_APP_SIZE_LIMIT: '917504'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout firmware repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install host toolchain deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            git wget flex bison gperf cmake ninja-build ccache \
+            libffi-dev libssl-dev dfu-util
+
+      # Clone the SDK exactly like the local env (branch v3.4, recursive) so
+      # the build resolves against the same mbedtls / FreeRTOS submodules.
+      - name: Clone ESP8266_RTOS_SDK v3.4
+        run: |
+          git clone --recursive --depth 1 --branch v3.4 \
+            https://github.com/espressif/ESP8266_RTOS_SDK.git "$HOME/esp/ESP8266_RTOS_SDK"
+
+      - name: Cache toolchain + pip
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.espressif8266
+            ~/.cache/pip
+          key: ${{ runner.os }}-rtos-tools-v3.4
+
+      # Install the xtensa-lx106 toolchain + python requirements via the SDK's
+      # own idf_tools flow (same mechanism as the local IDF_TOOLS_PATH setup):
+      # downloads xtensa-lx106-elf-gcc8_4_0-esp-2020r3 (linux-amd64) and the
+      # SDK python venv. install.sh respects IDF_TOOLS_PATH.
+      - name: Install ESP8266 toolchain
+        run: |
+          export IDF_PATH="$HOME/esp/ESP8266_RTOS_SDK"
+          export IDF_TOOLS_PATH="$HOME/.espressif8266"
+          "$IDF_PATH/install.sh"
+          # SDK python requirements into the active runner python.
+          python -m pip install --upgrade pip
+          python -m pip install -r "$IDF_PATH/requirements.txt"
+
+      # G10 — host-side transform/endpoint/urlencode unit tests must pass
+      # before any firmware is built or released.
+      - name: Run host unit tests
+        run: make -C rtos/test/host
+
+      # Production overlay build. v3.4's project.cmake takes a single
+      # SDKCONFIG_DEFAULTS file; rtos/CMakeLists.txt merges the semicolon list
+      # into one generated file, so the documented incantation works verbatim.
+      - name: Build production firmware
+        run: |
+          export IDF_PATH="$HOME/esp/ESP8266_RTOS_SDK"
+          export IDF_TOOLS_PATH="$HOME/.espressif8266"
+          . "$IDF_PATH/export.sh"
+          cd rtos
+          idf.py -B build_ci \
+            -DSDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.defaults.production" \
+            build
+
+      # G9 — explicit FAILING size gate. The app image lives at
+      # build_ci/einktodo-rtos.bin (project(einktodo-rtos)); it must fit the
+      # 0xF0000 OTA slot with margin (limit 0xE0000).
+      - name: Enforce app size gate (0xE0000)
+        run: |
+          BIN="rtos/build_ci/einktodo-rtos.bin"
+          if [ ! -f "$BIN" ]; then
+            echo "::error::app binary $BIN not found after build"
+            exit 1
+          fi
+          SIZE=$(wc -c < "$BIN")
+          LIMIT="${EINKTODO_APP_SIZE_LIMIT}"
+          echo "app .bin size: ${SIZE} bytes (limit ${LIMIT} = 0xE0000)"
+          if [ "$SIZE" -gt "$LIMIT" ]; then
+            echo "::error::app .bin ${SIZE} bytes exceeds 0xE0000 (${LIMIT}) OTA-slot gate"
+            exit 1
+          fi
+
+      # rtos- prefixed release assets so they can NEVER be confused with the
+      # legacy Arduino firmware.bin / md5sum assets shipped by tag.yml.
+      - name: Stage release assets
+        run: |
+          cp rtos/build_ci/einktodo-rtos.bin firmware-rtos.bin
+          sha256sum firmware-rtos.bin | awk '{print $1}' > firmware-rtos.sha256
+
+      - name: Create release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref_name }}
+        run: |
+          gh release delete "$tag" --repo="$GITHUB_REPOSITORY" --yes || true
+          gh release create "$tag" \
+              --repo="$GITHUB_REPOSITORY" \
+              --title="${GITHUB_REPOSITORY#*/} ${tag#rtos-v} (RTOS)" \
+              --generate-notes \
+              'firmware-rtos.bin' 'firmware-rtos.sha256'

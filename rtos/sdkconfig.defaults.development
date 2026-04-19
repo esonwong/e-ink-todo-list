@@ -1,0 +1,8 @@
+# Development overlay — dev tunnel, debug on, OTA off.
+# Pair with the git-ignored sdkconfig.defaults.local (see .local.example):
+#   idf.py -DSDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.defaults.development;sdkconfig.defaults.local" build
+CONFIG_EINKTODO_API_URL="https://dev.einktodo.com"
+CONFIG_EINKTODO_OTA_URL="https://dev.einktodo.com/api/update/rtos/firmware"
+# CONFIG_EINKTODO_ENABLE_OTA is not set
+CONFIG_EINKTODO_DEBUG=y
+CONFIG_LOG_DEFAULT_LEVEL_DEBUG=y

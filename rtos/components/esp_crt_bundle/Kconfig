@@ -1,0 +1,38 @@
+# TLS trust-store knobs.
+#
+# Stock ESP8266_RTOS_SDK v3.4 references CONFIG_MBEDTLS_CERTIFICATE_BUNDLE in
+# esp_tls_mbedtls.c (it gates both the #include "esp_crt_bundle.h" and the
+# cfg->crt_bundle_attach() call) but never declares the symbol anywhere. This
+# component declares it so the sdkconfig.defaults assignment activates the
+# attach hook used by both esp_crt_bundle_attach (CA bundle) and
+# pinned_tls_attach (leaf-fingerprint pinning).
+#
+# CONFIG_MBEDTLS_V3 is declared here too: v3.4 only ships mbedTLS v2 sources, so
+# the symbol is an informational selector kept so the documented sdkconfig
+# baseline (architecture doc 3.2) configures without an "unknown symbol"
+# warning. The actual crypto runs on the in-tree v2 mbedtls; the attach hook,
+# fingerprint pinning and CA bundle all use APIs present in v2.
+
+menu "E-ink Todo TLS trust"
+
+    config MBEDTLS_CERTIFICATE_BUNDLE
+        bool "Enable the mbedTLS certificate-bundle attach hook"
+        default y
+        help
+            Activates esp_tls_mbedtls.c's crt_bundle_attach path. Required for
+            both the curated CA bundle (esp_crt_bundle) and the pinned_tls leaf
+            fingerprint verifier, which share the patched esp_http_client /
+            tcp_transport crt_bundle_attach hook (R4/R5).
+
+    config MBEDTLS_V3
+        bool "Prefer mbedTLS v3 (informational; v3.4 ships v2 only)"
+        default y
+        help
+            Tier-1 TLS selector from the architecture baseline. ESP8266_RTOS_SDK
+            v3.4 only provides mbedTLS v2; this flag is kept so the committed
+            sdkconfig.defaults configures cleanly. The trust paths use only
+            APIs available in the in-tree v2 mbedtls. Disable together with
+            CONFIG_MBEDTLS_CERTIFICATE_BUNDLE and enable CONFIG_EINKTODO_TLS_TIER2
+            to fall back to the esp-tls global CA store (no SDK patch).
+
+endmenu

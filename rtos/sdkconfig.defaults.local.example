@@ -1,0 +1,16 @@
+# Template for dev secrets — copy to sdkconfig.defaults.local (git-ignored,
+# the RTOS-tree equivalent of the Arduino tree's local.ini) and fill in.
+# Build:
+#   idf.py -DSDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.defaults.development;sdkconfig.defaults.local" build
+# Never put real credentials in any committed sdkconfig.defaults* file.
+
+CONFIG_EINKTODO_DEV_WIFI_SSID="your-ssid"
+CONFIG_EINKTODO_DEV_WIFI_PASS="your-password"
+
+# Dev-only preset API key (41-char cuid), skips the portal entry
+CONFIG_EINKTODO_API_KEY=""
+
+# Optional LAN fallback endpoint + leaf-cert pin
+# (colon-less hex: 40 chars = SHA-1, 64 chars = SHA-256)
+# CONFIG_EINKTODO_FALLBACK_URL_1="https://192.168.50.38:8443"
+# CONFIG_EINKTODO_FALLBACK_PIN_1="9300DFA39B6412A82DA07875B2395CB3194AEBE5"

@@ -1,0 +1,13 @@
+# idf.py build output (per-agent -B dirs included)
+build/
+build_*/
+vbuild*/
+sdkconfig
+sdkconfig.old
+
+# dev secrets (template: sdkconfig.defaults.local.example)
+sdkconfig.defaults.local
+
+# host test output
+test/host/bin/
+test/host/*.log

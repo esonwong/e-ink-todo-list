@@ -1,0 +1,57 @@
+# upstream.diff — project-local patch vs ESP8266_RTOS_SDK release/v3.4
+# Component: tcp_transport
+# Purpose: expose esp_tls_cfg_t.crt_bundle_attach through the transport layer
+#          (esp_transport_ssl_crt_bundle_attach). Carries both the curated CA
+#          bundle (esp_crt_bundle_attach) and leaf-fingerprint pinning
+#          (pinned_tls_attach) — R4/R5. SDK 'test/' dir dropped (not built).
+# Reapply: copy the SDK component, then 'patch -p1 < upstream.diff'.
+#
+--- a/include/esp_transport_ssl.h
++++ b/include/esp_transport_ssl.h
+@@ -146,6 +146,22 @@
+  */
+ void esp_transport_ssl_set_psk_key_hint(esp_transport_handle_t t, const psk_hint_key_t* psk_hint_key);
+ 
++/**
++ * @brief      Set the certificate-bundle attach callback for the underlying
++ *             esp-tls config (EINKTODO PATCH, R4/R5).
++ *
++ * @note       The callback receives the mbedtls_ssl_config and is invoked by
++ *             esp_tls_mbedtls.c at handshake setup. It is honored only when
++ *             CONFIG_MBEDTLS_CERTIFICATE_BUNDLE is enabled. Used for both the
++ *             curated CA bundle and the pinned_tls leaf-fingerprint verifier.
++ *
++ * @param      t                  ssl transport
++ * @param[in]  crt_bundle_attach  attach callback, signature-compatible with
++ *                                esp_crt_bundle_attach / pinned_tls_attach
++ */
++void esp_transport_ssl_crt_bundle_attach(esp_transport_handle_t t,
++                                         esp_err_t ((*crt_bundle_attach)(void *conf)));
++
+ #ifdef __cplusplus
+ }
+ #endif
+--- a/transport_ssl.c
++++ b/transport_ssl.c
+@@ -200,6 +200,21 @@
+     }
+ }
+ 
++/* EINKTODO PATCH (R4/R5): expose the esp_tls_cfg_t.crt_bundle_attach hook through
++ * the transport layer. The field already exists in esp_tls.h and is honored by
++ * esp_tls_mbedtls.c (guarded by CONFIG_MBEDTLS_CERTIFICATE_BUNDLE), but stock
++ * esp_transport_ssl.* had no setter for it. This one hook carries both the
++ * curated CA bundle (esp_crt_bundle_attach) and the leaf-fingerprint pinning
++ * (pinned_tls_attach) — see upstream.diff. */
++void esp_transport_ssl_crt_bundle_attach(esp_transport_handle_t t,
++                                         esp_err_t ((*crt_bundle_attach)(void *conf)))
++{
++    transport_ssl_t *ssl = esp_transport_get_context_data(t);
++    if (t && ssl) {
++        ssl->cfg.crt_bundle_attach = crt_bundle_attach;
++    }
++}
++
+ void esp_transport_ssl_set_cert_data(esp_transport_handle_t t, const char *data, int len)
+ {
+     transport_ssl_t *ssl = esp_transport_get_context_data(t);

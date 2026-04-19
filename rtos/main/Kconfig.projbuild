@@ -1,0 +1,180 @@
+menu "E-ink Todo"
+
+    config EINKTODO_API_URL
+        string "API base URL"
+        default "https://www.einktodo.com"
+        help
+            Base URL of the einktodo backend (legacy DEFAULT_API_URL minus the
+            path). todo_fetch appends the display path (/api/display/v3).
+            Per-environment value comes from the sdkconfig.defaults.<env>
+            overlay.
+
+    config EINKTODO_OTA_URL
+        string "Firmware OTA URL (RTOS channel)"
+        default "https://www.einktodo.com/api/update/rtos/firmware"
+        help
+            Full URL of the NEW RTOS firmware channel (legacy
+            FIRMWARE_UPDATE_URL pointed at /api/update/firmware, which stays
+            frozen for the Arduino fleet — never point this at it).
+
+    config EINKTODO_API_KEY
+        string "Preset API key (development only)"
+        default ""
+        help
+            Dev-only 41-char API key, skips portal entry. Set it in the
+            git-ignored sdkconfig.defaults.local — never in committed
+            production defaults.
+
+    config EINKTODO_BUTTON_PIN
+        int "Button GPIO"
+        range 0 16
+        default 16
+        help
+            Production button is GPIO16 (RTC pad, no internal pull-up — the
+            output-driving-HIGH readback trick applies). pcb-test overlay
+            sets 0.
+
+    config EINKTODO_FALLBACK_URL_1
+        string "Fallback endpoint 1 base URL"
+        default ""
+
+    config EINKTODO_FALLBACK_PIN_1
+        string "Fallback endpoint 1 TLS leaf pin (hex)"
+        default ""
+        help
+            Colon-less hex digest of the leaf certificate DER:
+            40 hex chars = SHA-1, 64 hex chars = SHA-256 (length
+            disambiguates).
+
+    config EINKTODO_FALLBACK_URL_2
+        string "Fallback endpoint 2 base URL"
+        default ""
+
+    config EINKTODO_FALLBACK_PIN_2
+        string "Fallback endpoint 2 TLS leaf pin (hex)"
+        default ""
+
+    config EINKTODO_DEBUG
+        bool "Debug build (boot dump, debug markers)"
+        default n
+        help
+            Legacy -D DEBUG: launch-screen DEBUG marker, chip/store boot
+            dump, dev WiFi preload. Pair with CONFIG_LOG_DEFAULT_LEVEL.
+
+    config EINKTODO_DEBUG_OTA
+        bool "Debug OTA throttle (60 s instead of 10 days)"
+        default n
+
+    config EINKTODO_DEBUG_STORE
+        bool "Debug persistent store (NVS dump)"
+        default n
+
+    choice EINKTODO_PANEL
+        prompt "E-ink panel"
+        default EINKTODO_PANEL_750_BWR
+        help
+            Replaces the PlatformIO env-per-panel matrix. Selects panel
+            dimensions, driver variant, X-Device-Colors capability and the
+            render-wait timeout.
+
+        config EINKTODO_PANEL_750_BWR
+            bool "7.5\" 800x480 black/white/red (Waveshare v2/v3, legacy E_INK_750)"
+        config EINKTODO_PANEL_750_BW
+            bool "7.5\" 800x480 black/white (legacy E_INK_750_BW)"
+        config EINKTODO_PANEL_750_V1
+            bool "7.5\" 640x384 black/white (Waveshare v1, legacy E_INK_750_V1)"
+        config EINKTODO_PANEL_75Z90
+            bool "7.5\" 640x384 black/white/red (GDEW075Z09, legacy E_INK_75Z90)"
+        config EINKTODO_PANEL_290
+            bool "2.9\" 296x128 black/white (legacy E_INK_290)"
+    endchoice
+
+    config EINKTODO_PANEL_WIDTH
+        int
+        default 800 if EINKTODO_PANEL_750_BWR || EINKTODO_PANEL_750_BW
+        default 640 if EINKTODO_PANEL_750_V1 || EINKTODO_PANEL_75Z90
+        default 296 if EINKTODO_PANEL_290
+
+    config EINKTODO_PANEL_HEIGHT
+        int
+        default 480 if EINKTODO_PANEL_750_BWR || EINKTODO_PANEL_750_BW
+        default 384 if EINKTODO_PANEL_750_V1 || EINKTODO_PANEL_75Z90
+        default 128 if EINKTODO_PANEL_290
+
+    config EINKTODO_PANEL_BWR
+        bool
+        default y if EINKTODO_PANEL_750_BWR || EINKTODO_PANEL_75Z90
+        default n
+
+    config EINKTODO_DEVICE_COLORS
+        string
+        default "bwr" if EINKTODO_PANEL_BWR
+        default "bw"
+        help
+            Value of the X-Device-Colors request header, derived from the
+            panel choice.
+
+    config EINKTODO_RENDER_TIMEOUT_MS
+        int
+        default 90000 if EINKTODO_PANEL_BWR
+        default 60000
+        help
+            cycle_task wait for BIT_DISP_DONE/BIT_DISP_ABORTED after posting
+            DISP_RENDER_BITMAP (G3: panel-derived; timeout is fatal ->
+            esp_restart()).
+
+    config EINKTODO_ENABLE_OTA
+        bool "Enable firmware OTA"
+        default n
+
+    config EINKTODO_PCB_TEST
+        bool "PCB factory-test mode"
+        default n
+
+    config EINKTODO_CHECK_INTERVAL
+        int "Display check interval (seconds)"
+        default 60
+
+    config EINKTODO_DEV_WIFI_SSID
+        string "Dev WiFi SSID (preloaded when no creds are saved)"
+        default ""
+        help
+            Legacy WIFI_SSID from local.ini. Set in the git-ignored
+            sdkconfig.defaults.local (template: sdkconfig.defaults.local.example).
+
+    config EINKTODO_DEV_WIFI_PASS
+        string "Dev WiFi password (preloaded with DEV_WIFI_SSID)"
+        default ""
+
+    config EINKTODO_TLS_INSECURE
+        bool "DEBUG ONLY: skip TLS server verification"
+        default n
+        help
+            Bring-up knob; replaces the legacy "0 certs -> insecure" branch
+            (deviation D6). Never enable in committed defaults.
+
+    config EINKTODO_TLS_TIER2
+        bool "Tier-2 TLS path: mbedTLS v2 + esp-tls global CA store"
+        default n
+        help
+            Fallback if mbedTLS v3 + certificate bundle misbehaves on the
+            ESP8266: stays on mbedTLS v2 and loads the curated PEM roots into
+            the esp-tls global CA store at boot (~8-12 KB resident heap, no
+            SDK patch). Disable CONFIG_MBEDTLS_V3/CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
+            when selecting this.
+
+    config EINKTODO_EPD_BITBANG
+        bool "Bit-bang EPD SPI instead of HSPI"
+        default n
+        help
+            Bring-up fallback if hardware-CS framing of the v3.4 SPI driver
+            glitches the panel (Residual 3).
+
+    config EINKTODO_GPIO16_RAWREG
+        bool "GPIO16 via raw RTC register pokes"
+        default n
+        help
+            Bring-up fallback (G11): verbatim lib/gpio16 register-poke port
+            instead of the driver/gpio readback path (Residual 4).
+
+endmenu
