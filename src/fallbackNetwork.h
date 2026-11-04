@@ -30,8 +30,11 @@ struct NetworkEndpointCandidate
 };
 
 static const char *NETWORK_PRIMARY_ENDPOINT_ID = "primary";
-static const char *NETWORK_LAST_GOOD_ENDPOINT_KEY = "network_last_good_endpoint";
-static const char *NETWORK_LAST_GOOD_USES_FINGERPRINT_KEY = "network_last_good_uses_fingerprint";
+// v2: up to v0.11.1 the primary endpoint always failed its TLS check (see
+// ensureCertStoreMounted), so every device remembered the fallback. New key
+// names make upgraded devices try the primary endpoint again.
+static const char *NETWORK_LAST_GOOD_ENDPOINT_KEY = "network_last_good_endpoint_v2";
+static const char *NETWORK_LAST_GOOD_USES_FINGERPRINT_KEY = "network_last_good_uses_fingerprint_v2";
 
 inline bool isValidFallbackFingerprint(const char *fingerprint)
 {
@@ -99,6 +102,17 @@ inline void rememberSuccessfulEndpoint(const NetworkEndpointCandidate &candidate
 {
   savePersistentValue(NETWORK_LAST_GOOD_ENDPOINT_KEY, candidate.id);
   savePersistentValue(NETWORK_LAST_GOOD_USES_FINGERPRINT_KEY, candidate.useFingerprint);
+}
+
+// BearSSL::CertStore reads /certs.idx and /certs.ar from LittleFS *during* the
+// TLS handshake, but getPersistentValue()/savePersistentValue() unmount
+// LittleFS when they return. Without a re-mount right before each attempt the
+// trust-anchor lookup fails and every CA-verified connection is rejected with
+// BearSSL error 62 ("Chain could not be linked to a trust anchor").
+// LittleFS.begin() is a no-op when already mounted.
+inline void ensureCertStoreMounted()
+{
+  LittleFS.begin();
 }
 
 inline void configureSecureClientForCandidate(BearSSL::WiFiClientSecure &client, BearSSL::CertStore &certStore, bool hasCertStore, const NetworkEndpointCandidate &candidate)

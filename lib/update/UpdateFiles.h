@@ -70,6 +70,7 @@ void updateFile(String name, int checkInterval = 60 * 60 * 24)
   for (int candidateIndex = 0; candidateIndex < candidateCount; candidateIndex++)
   {
     NetworkEndpointCandidate &candidate = candidates[candidateIndex];
+    ensureCertStoreMounted();
     BearSSL::WiFiClientSecure attemptClient;
     configureSecureClientForCandidate(attemptClient, certStore, numCerts > 0, candidate);
 
