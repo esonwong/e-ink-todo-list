@@ -454,6 +454,8 @@ void downloadAndDrawTodo()
     LittleFS.begin();
 
     bool isBWR = (bitmapLayers == 2 && blackBufferLength > 0 && redBufferLength > 0);
+    size_t downloadedSize = 0;
+    size_t expectedSize = 0;
 
     if (isBWR)
     {
@@ -518,6 +520,8 @@ void downloadAndDrawTodo()
 
       blackFile.close();
       redFile.close();
+      downloadedSize = bytesWritten;
+      expectedSize = totalSize;
     }
     else
     {
@@ -546,9 +550,23 @@ void downloadAndDrawTodo()
       }
       Serial.println();
       file.close();
+      downloadedSize = readSizeTotal;
+      expectedSize = contentLength;
     }
 
     LittleFS.end();
+
+    // A connection dropped mid-body leaves a truncated bitmap. Drawing it shows
+    // only the top of the screen, and storing Last-Modified would make every
+    // later poll a 304, so the half screen would stick until the content
+    // changes. Skip both and let the next poll fetch it again.
+    if (downloadedSize != expectedSize)
+    {
+      Serial.printf("Incomplete download: %u/%u bytes, keep current screen\n", downloadedSize, expectedSize);
+      https.end();
+      return;
+    }
+
     Serial.println("Read all response body");
     https.end();
     rememberSuccessfulEndpoint(candidate);
