@@ -423,6 +423,7 @@ void downloadAndDrawTodo()
     if (httpCode != HTTP_CODE_OK)
     {
       Serial.printf("HTTPS GET failed for %s, error: %s\n", candidate.id.c_str(), https.errorToString(httpCode).c_str());
+      logTlsFailure(attemptClient, candidate);
       https.end();
       if (isReachableHttpCode(httpCode))
       {

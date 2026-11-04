@@ -115,6 +115,16 @@ inline void ensureCertStoreMounted()
   LittleFS.begin();
 }
 
+inline void logTlsFailure(BearSSL::WiFiClientSecure &client, const NetworkEndpointCandidate &candidate)
+{
+  char sslErr[80];
+  int sslCode = client.getLastSSLError(sslErr, sizeof(sslErr));
+  if (sslCode != 0)
+  {
+    Serial.printf("TLS error for %s: %d (%s), free heap %u, max block %u\n", candidate.id.c_str(), sslCode, sslErr, ESP.getFreeHeap(), ESP.getMaxFreeBlockSize());
+  }
+}
+
 inline void configureSecureClientForCandidate(BearSSL::WiFiClientSecure &client, BearSSL::CertStore &certStore, bool hasCertStore, const NetworkEndpointCandidate &candidate)
 {
   client.setTimeout(60000);
