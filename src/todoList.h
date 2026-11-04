@@ -18,6 +18,11 @@ String cachedRedFileName = "/todo_red.bitmap";
 // "double-click").  Server-side dispatcher decides what action it triggers,
 // so behavior can change without an OTA.  Cleared after the request goes out.
 String pendingDeviceEvent = "";
+// Raw report of the last bitmap download that was cut off mid-body, sent on the
+// next poll as `X-Device-Download-Incomplete: <received>/<expected> <streak>`.
+// The server decides what that means; the firmware only reports the numbers.
+String pendingDownloadReport = "";
+uint16_t incompleteDownloadStreak = 0;
 
 // 设备颜色能力，根据编译时的屏幕类型决定
 #if defined(E_INK_750)
@@ -363,10 +368,22 @@ void downloadAndDrawTodo()
       https.addHeader("X-Device-Event", pendingDeviceEvent);
       pendingDeviceEvent = "";
     }
+    bool sentDownloadReport = false;
+    if (pendingDownloadReport.length() > 0)
+    {
+      Serial.printf("X-Device-Download-Incomplete: %s\n", pendingDownloadReport.c_str());
+      https.addHeader("X-Device-Download-Incomplete", pendingDownloadReport);
+      sentDownloadReport = true;
+    }
     https.collectHeaders(headerKeys, headerKeysSize);
 
     int httpCode = https.GET();
     int contentLength = https.getSize();
+    if (sentDownloadReport && httpCode > 0)
+    {
+      // The server got the request headers; don't report the same failure twice.
+      pendingDownloadReport = "";
+    }
 
     Serial.printf("HTTPS GET: %d\n", httpCode);
     Serial.printf("Content-Length: %d\n", contentLength);
@@ -562,12 +579,18 @@ void downloadAndDrawTodo()
     // changes. Skip both and let the next poll fetch it again.
     if (downloadedSize != expectedSize)
     {
-      Serial.printf("Incomplete download: %u/%u bytes, keep current screen\n", downloadedSize, expectedSize);
+      if (incompleteDownloadStreak < 65535)
+      {
+        incompleteDownloadStreak++;
+      }
+      pendingDownloadReport = String(downloadedSize) + "/" + String(expectedSize) + " " + String(incompleteDownloadStreak);
+      Serial.printf("Incomplete download: %u/%u bytes (streak %u), keep current screen\n", downloadedSize, expectedSize, incompleteDownloadStreak);
       https.end();
       return;
     }
 
     Serial.println("Read all response body");
+    incompleteDownloadStreak = 0;
     https.end();
     rememberSuccessfulEndpoint(candidate);
 
