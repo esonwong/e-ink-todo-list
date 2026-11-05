@@ -61,7 +61,10 @@ void updateFile(String name, int checkInterval = 60 * 60 * 24)
   }
 
   NetworkEndpointCandidate candidates[3];
-  int candidateCount = buildEndpointCandidates(FILE_UPDATE_URL, fallbackPath, candidates, 3);
+  // The primary URL needs the file name too (lost in 7e475ac: it requested
+  // FILE_UPDATE_URL itself, got 404 and taught every device to prefer the fallback).
+  String primaryUrl = String(FILE_UPDATE_URL) + "/" + name;
+  int candidateCount = buildEndpointCandidates(primaryUrl.c_str(), fallbackPath, candidates, 3);
   prioritizeLastGoodEndpoint(candidates, candidateCount);
 
   const char *headerKeys[] = {"etag"};
@@ -70,6 +73,7 @@ void updateFile(String name, int checkInterval = 60 * 60 * 24)
   for (int candidateIndex = 0; candidateIndex < candidateCount; candidateIndex++)
   {
     NetworkEndpointCandidate &candidate = candidates[candidateIndex];
+    ensureCertStoreMounted();
     BearSSL::WiFiClientSecure attemptClient;
     configureSecureClientForCandidate(attemptClient, certStore, numCerts > 0, candidate);
 

@@ -337,6 +337,7 @@ void downloadAndDrawTodo()
   for (int candidateIndex = 0; candidateIndex < candidateCount; candidateIndex++)
   {
     NetworkEndpointCandidate &candidate = candidates[candidateIndex];
+    ensureCertStoreMounted();
     BearSSL::WiFiClientSecure attemptClient;
     configureSecureClientForCandidate(attemptClient, certStore, numCerts > 0, candidate);
 
@@ -422,6 +423,7 @@ void downloadAndDrawTodo()
     if (httpCode != HTTP_CODE_OK)
     {
       Serial.printf("HTTPS GET failed for %s, error: %s\n", candidate.id.c_str(), https.errorToString(httpCode).c_str());
+      logTlsFailure(attemptClient, candidate);
       https.end();
       if (isReachableHttpCode(httpCode))
       {
