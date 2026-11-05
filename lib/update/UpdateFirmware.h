@@ -111,6 +111,10 @@ void updateFireWare(const char *url = FIRMWARE_UPDATE_URL)
     BearSSL::WiFiClientSecure attemptClient;
     configureSecureClientForCandidate(attemptClient, certStore, numCerts > 0, candidate);
     t_httpUpdate_return ret = ESPhttpUpdate.update(attemptClient, candidate.url);
+    if (ret == HTTP_UPDATE_FAILED)
+    {
+      logTlsFailure(attemptClient, candidate);
+    }
     attemptClient.stop();
 
     switch (ret)
