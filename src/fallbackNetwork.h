@@ -77,9 +77,41 @@ inline int buildEndpointCandidates(const char *primaryUrl, const String &fallbac
   return count;
 }
 
+// A device that remembered a fallback keeps using it as long as it answers,
+// so it would never notice the primary working again (e.g. after the slim
+// certs.ar of v0.11.4 fixed its trust anchors). Once per interval, leave the
+// primary first; a success there makes it the remembered endpoint again, a
+// failure costs one handshake before the loop moves on to the fallback.
+#ifndef PRIMARY_PROBE_INTERVAL_SECONDS
+#define PRIMARY_PROBE_INTERVAL_SECONDS (24 * 60 * 60)
+#endif
+static const char *NETWORK_PRIMARY_PROBE_TIME_KEY = "network_primary_probe_time";
+
+inline bool shouldProbePrimary()
+{
+  time_t now = time(nullptr);
+  // No NTP time yet: don't stamp a bogus probe time.
+  if (now < 1600000000)
+  {
+    return false;
+  }
+  int lastProbe = getPersistentValue(NETWORK_PRIMARY_PROBE_TIME_KEY, 0);
+  if ((long)now - lastProbe < PRIMARY_PROBE_INTERVAL_SECONDS)
+  {
+    return false;
+  }
+  savePersistentValue(NETWORK_PRIMARY_PROBE_TIME_KEY, (int)now);
+  return true;
+}
+
 inline void prioritizeLastGoodEndpoint(NetworkEndpointCandidate *candidates, int count)
 {
   String lastGoodEndpoint = getPersistentValue<String>(NETWORK_LAST_GOOD_ENDPOINT_KEY, String(NETWORK_PRIMARY_ENDPOINT_ID));
+  if (lastGoodEndpoint != NETWORK_PRIMARY_ENDPOINT_ID && shouldProbePrimary())
+  {
+    Serial.printf("Last good endpoint is %s; probing the primary first\n", lastGoodEndpoint.c_str());
+    return;
+  }
   for (int i = 0; i < count; i++)
   {
     if (candidates[i].id == lastGoodEndpoint)

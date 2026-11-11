@@ -35,7 +35,12 @@ void updateFile(String name, int checkInterval = 60 * 60 * 24)
   // Serial.print("Check interval: ");
   // Serial.println(checkInterval);
 
-  if (diff < checkInterval)
+  // A missing file is fetched right away, whatever the last check said.
+  LittleFS.begin();
+  bool fileExists = LittleFS.exists(name);
+  LittleFS.end();
+
+  if (fileExists && diff < checkInterval)
   {
     Serial.printf("Skip update %s, will check after %d hours\n", name.c_str(), (checkInterval - diff) / 3600);
     return;
@@ -219,6 +224,8 @@ void updateFile(String name, int checkInterval = 60 * 60 * 24)
   }
 
   LittleFS.end();
+  // No endpoint answered: try again soon instead of waiting a full interval.
+  savePersistentValue(name + "_last_check_time", now - checkInterval + FILE_DOWNLOAD_RETRY_SECONDS);
 }
 
 void updateFiles()
